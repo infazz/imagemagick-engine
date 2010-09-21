@@ -5,7 +5,7 @@
   Description: Improve the quality of re-sized images by replacing standard GD library with ImageMagick
   Author: Orangelab
   Author URI: http://www.orangelab.se
-  Version: 1.0
+  Version: 1.1
 
   Copyright 2010 Orangelab
 
@@ -28,9 +28,6 @@
 
 /*
  * Current todo list:
- * - readme.txt
- * - screenshots
- * 
  * - check localization, translate strings
  *
  * Future todo list:
@@ -85,7 +82,7 @@ add_action('plugins_loaded', 'ime_init');
 function ime_init() {
 	$plugin_url = trailingslashit(WP_PLUGIN_URL . '/' . dirname(plugin_basename(__FILE__)));
 	
-	load_plugin_textdomain('ime', false, dirname(plugin_basename(__FILE__)) . '/languages');
+	$r = load_plugin_textdomain('ime', false, dirname(plugin_basename(__FILE__)) . '/languages');
 
 	if (ime_active()) {
 		add_filter('intermediate_image_sizes_advanced', 'ime_filter_image_sizes', 99, 1);
@@ -715,12 +712,14 @@ function ime_option_page() {
 		check_admin_referer('ime-options');
 
 	global $_wp_additional_image_sizes;
-	$sizes = array('thumbnail', 'medium', 'large'); // Standard sizes
+	$sizes = array('thumbnail' => __('Thumbnail', 'ime')
+		       , 'medium' => __('Medium', 'ime')
+		       , 'large' => __('Large', 'ime')); // Standard sizes
 	if ( isset( $_wp_additional_image_sizes ) && count( $_wp_additional_image_sizes ) )
 		$sizes = array_merge( $sizes, array_keys( $_wp_additional_image_sizes ) );
 
 	if (isset($_POST['regenerate-images'])) {
-		ime_show_regenerate_images($sizes);
+		ime_show_regenerate_images(array_keys($sizes));
 		return;
 	}
 
@@ -739,7 +738,7 @@ function ime_option_page() {
 				ime_set_option('quality', '');
 		}
 		$new_handle_sizes = array();
-		foreach ($sizes AS $s) {
+		foreach ($sizes AS $s => $name) {
 			$f = 'handle-' . $s;
 			$new_handle_sizes[$s] = isset($_POST[$f]) && !! $_POST[$f];
 		}
@@ -809,8 +808,8 @@ function ime_option_page() {
 		  <td scope="row" valign="top" style="padding-right: 20px;"><?php _e('Sizes','ime'); ?>:</td>
 		  <td>
 		    <?php
-		      foreach($sizes AS $s) {
-			      echo '<input type="checkbox" name="regen-size-' . $s . '" value="1" ' . ($handle_sizes[$s] ? ' CHECKED ' : '') . ' /> ' . ucfirst($s) . '<br />';
+		      foreach($sizes AS $s => $name) {
+			      echo '<input type="checkbox" name="regen-size-' . $s . '" value="1" ' . ($handle_sizes[$s] ? ' CHECKED ' : '') . ' /> ' . $name . '<br />';
 		      }
 		     ?>
 		    </td>
@@ -877,8 +876,8 @@ function ime_option_page() {
 	    <th scope="row" valign="top"><?php _e('Handle sizes','ime'); ?>:</th>
 	    <td>
 	      <?php
-		      foreach($sizes AS $s) {
-			      echo '<input type="checkbox" name="handle-' . $s . '" value="1" ' . ($handle_sizes[$s] ? ' CHECKED ' : '') . ' /> ' . ucfirst($s) . '<br />';
+		      foreach($sizes AS $s => $name) {
+			      echo '<input type="checkbox" name="handle-' . $s . '" value="1" ' . ($handle_sizes[$s] ? ' CHECKED ' : '') . ' /> ' . $name . '<br />';
 		      }
 		      ?>
 	      </td>

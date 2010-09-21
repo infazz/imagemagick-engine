@@ -59,3 +59,12 @@ You can also find binary releases  at http://www.imagemagick.org including Windo
 
 1. Example image: ImageMagick vs GD
 2. Administration interface
+
+== Changelog ==
+
+= 1.1 =
+* Working localization
+* Added Swedish translation
+
+= 1.0 =
+* Initial release
