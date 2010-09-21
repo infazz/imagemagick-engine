@@ -5,7 +5,7 @@
   Description: Improve the quality of re-sized images by replacing standard GD library with ImageMagick
   Author: Orangelab
   Author URI: http://www.orangelab.se
-  Version: 1.1
+  Version: 1.1.1
 
   Copyright 2010 Orangelab
 
@@ -28,7 +28,7 @@
 
 /*
  * Current todo list:
- * - check localization, translate strings
+ * - empty!
  *
  * Future todo list:
  * - AJAXify re-encode startup
@@ -564,7 +564,7 @@ function ime_admin_menu() {
 /* Add settings to plugin action links */
 function ime_filter_plugin_actions($links, $file) {
 	if($file == plugin_basename(__FILE__)) {
-		$settings_link = "<a href=\"options-general.php?page=ime\">"
+		$settings_link = "<a href=\"options-general.php?page=imagemagick-engine\">"
 			. __('Settings', 'imagemagick-engine') . '</a>';
 		array_unshift( $links, $settings_link ); // before other links
 	}
@@ -792,7 +792,7 @@ function ime_option_page() {
 ?>
 <div class="wrap">
   <h2><?php _e('ImageMagick Engine Settings','imagemagick-engine'); ?></h2>
-  <form action="options-general.php?page=ime" method="post" name="update_options">
+  <form action="options-general.php?page=imagemagick-engine" method="post" name="update_options">
     <?php wp_nonce_field('ime-options'); ?>
     <input type="hidden" name="ajax_url" id="ajax_url" value="<?php bloginfo('wpurl'); ?>/wp-admin/admin-ajax.php" />
   <div id="poststuff" class="metabox-holder has-right-sidebar">

@@ -3,7 +3,7 @@ Contributors: orangelab
 Tags: image images picture imagemagick gd
 Requires at least: 2.9
 Tested up to: 3.0.1
-Stable tag: 1.1
+Stable tag: 1.1.1
 
 Improve the quality of re-sized images by replacing standard GD library with ImageMagick.
 
@@ -14,18 +14,21 @@ Dramatically improve the quality of re-sized images by making WordPress use Imag
 Features
 
 * Preserve embedded color profile in re-sized image
+* Automatically recognize custom image sizes
 * Allow regeneration of existing images (optionally for selected image sizes only)
 * Configure image quality or use dynamically computed default value.
+
+Translations: Swedish
 
 Requires either ImageMagick binary or Imagick PHP module.
 
 == Installation ==
 
-0. Install either ImageMagick or the Imagick PHP module (see FAQ for more information).
-1. Download and extract plugin files to a folder in your wp-content/plugin directory.
-2. Activate the plugin through the WordPress admin interface.
-3. Configure ImageMagick settings and enable it on plugin settings page.
-4. Regenerate existing images to take advantage of the new features.
+1. Install either ImageMagick or the Imagick PHP module (see FAQ for more information).
+2. Download and extract plugin files to a folder in your wp-content/plugin directory.
+3. Activate the plugin through the WordPress admin interface.
+4. Configure ImageMagick settings and enable it on plugin settings page.
+5. Regenerate existing images to take advantage of the new features.
 
 If you have any questions or problems please make a comment here: http://wp.orangelab.se/imagemagick-engine/
 
@@ -61,6 +64,9 @@ You can also find binary releases  at http://www.imagemagick.org including Windo
 2. Administration interface
 
 == Changelog ==
+
+= 1.1.1=
+* Fix search-and-replace error from 1.1 that made it impossible to change settings! Thanks to Marco M. Jaeger for report!
 
 = 1.1 =
 * Working localization
