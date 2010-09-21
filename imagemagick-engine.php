@@ -82,7 +82,7 @@ add_action('plugins_loaded', 'ime_init');
 function ime_init() {
 	$plugin_url = trailingslashit(WP_PLUGIN_URL . '/' . dirname(plugin_basename(__FILE__)));
 	
-	$r = load_plugin_textdomain('ime', false, dirname(plugin_basename(__FILE__)) . '/languages');
+	$r = load_plugin_textdomain('imagemagick-engine', false, dirname(plugin_basename(__FILE__)) . '/languages');
 
 	if (ime_active()) {
 		add_filter('intermediate_image_sizes_advanced', 'ime_filter_image_sizes', 99, 1);
@@ -374,7 +374,7 @@ function ime_im_cli_valid() {
 	return !empty($cmd) && is_executable($cmd);
 }
 
-// Check if path leads to ImageMagic executable
+// Check if path leads to ImageMagick executable
 function ime_im_cli_check_command($path) {
 	$path = realpath($path);
 	if (!is_dir($path))
@@ -391,7 +391,7 @@ function ime_im_cli_check_command($path) {
 	return null;
 }
 
-// Try to find a valid ImageMagic executable
+// Try to find a valid ImageMagick executable
 function ime_im_cli_find_command() {
 	$possible_paths = array("/usr/bin", "/usr/local/bin");
 
@@ -404,7 +404,7 @@ function ime_im_cli_find_command() {
 	return null;
 }
 
-// Get ImageMagic executable
+// Get ImageMagick executable
 function ime_im_cli_command() {
 	$path = ime_get_option("cli_path");
 	if (!empty($path))
@@ -558,14 +558,14 @@ function ime_ajax_process_image() {
 
 /* Add admin/status page */
 function ime_admin_menu() {
-	add_options_page('ImageMagick Engine', 'ImageMagick Engine', 8, 'ime', 'ime_option_page');
+	add_options_page('ImageMagick Engine', 'ImageMagick Engine', 8, 'imagemagick-engine', 'ime_option_page');
 }
 
 /* Add settings to plugin action links */
 function ime_filter_plugin_actions($links, $file) {
 	if($file == plugin_basename(__FILE__)) {
 		$settings_link = "<a href=\"options-general.php?page=ime\">"
-			. __('Settings', 'ime') . '</a>';
+			. __('Settings', 'imagemagick-engine') . '</a>';
 		array_unshift( $links, $settings_link ); // before other links
 	}
 
@@ -592,7 +592,7 @@ function ime_filter_media_meta($content, $post) {
 	if (!$converted)
 		return $content;
 	
-	$content .= '</p><p><i>' . __('Resized using ImageMagic Engine', 'ime') . '</i>';
+	$content .= '</p><p><i>' . __('Resized using ImageMagick Engine', 'imagemagick-engine') . '</i>';
 
 	return $content;
 }
@@ -621,19 +621,19 @@ function ime_option_display($display = true, $echo = true) {
 function ime_show_regenerate_images($sizes) {
 	global $wpdb;
 
-	echo '<div class="wrap"><h2>' . __('ImageMagick Engine','ime') . '</h2>';
+	echo '<div class="wrap"><h2>' . __('ImageMagick Engine','imagemagick-engine') . '</h2>';
 	
 	// Query for the IDs only to reduce memory usage
 	$images = $wpdb->get_results( "SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND post_mime_type LIKE 'image/%'" );
 
 	// Make sure there are images to process
 	if ( empty($images) ) {
-		echo '<p>' . sprintf( __( "Unable to find any images. Are you sure <a href='%s'>some exist</a>?", 'ime' ), admin_url('upload.php?post_mime_type=image') ) . "</p>\n\n</div>";
+		echo '<p>' . sprintf( __( "Unable to find any images. Are you sure <a href='%s'>some exist</a>?", 'imagemagick-engine' ), admin_url('upload.php?post_mime_type=image') ) . "</p>\n\n</div>";
 		return;
 	}
 	
 	// Valid results
-	echo '<p>' . __( "Please be patient while images are regenerated. This can take a long time if you have many images.", 'ime' ) . '</p>';
+	echo '<p>' . __( "Please be patient while images are regenerated. This can take a long time if you have many images.", 'imagemagick-engine' ) . '</p>';
 
 	// Generate the list of IDs
 	$ids = array();
@@ -659,7 +659,7 @@ function ime_show_regenerate_images($sizes) {
   <div id="regenbar-percent"></div>
 </div>
 
-<div id="regen-message"><div id="regen-message-inner"><?php _e('Working...', 'ime');?></div></div>
+<div id="regen-message"><div id="regen-message-inner"><?php _e('Working...', 'imagemagick-engine');?></div></div>
 
 </div>
 
@@ -687,7 +687,7 @@ function ime_show_regenerate_images($sizes) {
 		if ( rt_images.length ) {
 		    RegenImages( rt_images.shift() );
 		} else {
-		    $("#regen-message-inner").html("<strong><?php echo js_escape(__( 'All done!', 'ime' ) ); ?></strong><br /><?php echo js_escape( sprintf( __( 'Processed %d images.', 'ime' ), $count ) ); ?>");
+		    $("#regen-message-inner").html("<strong><?php echo js_escape(__( 'All done!', 'imagemagick-engine' ) ); ?></strong><br /><?php echo js_escape( sprintf( __( 'Processed %d images.', 'imagemagick-engine' ), $count ) ); ?>");
 		}
 
 	    });
@@ -712,9 +712,9 @@ function ime_option_page() {
 		check_admin_referer('ime-options');
 
 	global $_wp_additional_image_sizes;
-	$sizes = array('thumbnail' => __('Thumbnail', 'ime')
-		       , 'medium' => __('Medium', 'ime')
-		       , 'large' => __('Large', 'ime')); // Standard sizes
+	$sizes = array('thumbnail' => __('Thumbnail', 'imagemagick-engine')
+		       , 'medium' => __('Medium', 'imagemagick-engine')
+		       , 'large' => __('Large', 'imagemagick-engine')); // Standard sizes
 	if ( isset( $_wp_additional_image_sizes ) && count( $_wp_additional_image_sizes ) )
 		$sizes = array_merge( $sizes, array_keys( $_wp_additional_image_sizes ) );
 
@@ -747,7 +747,7 @@ function ime_option_page() {
 		ime_store_options();
 		
 		echo '<div id="message" class="updated fade"><p>'
-			. __('Settings updated', 'ime')
+			. __('Settings updated', 'imagemagick-engine')
 			. '</p></div>';
 	}
 
@@ -783,15 +783,15 @@ function ime_option_page() {
 
 	if (!$any_valid)
 		echo '<div id="warning" class="error"><p>'
-			. sprintf(__('No valid ImageMagick mode found! Please check %sFAQ%s for installation instructions.', 'ime'), '<a href="http://wp.orangelab.se/imagemagick-engine/documentation#installation">', '</a>')
+			. sprintf(__('No valid ImageMagick mode found! Please check %sFAQ%s for installation instructions.', 'imagemagick-engine'), '<a href="http://wp.orangelab.se/imagemagick-engine/documentation#installation">', '</a>')
 			. '</p></div>';
 	elseif (!$enabled)
 		echo '<div id="warning" class="error"><p>'
-			. __('ImageMagick Engine is not enabled.', 'ime')
+			. __('ImageMagick Engine is not enabled.', 'imagemagick-engine')
 			. '</p></div>';
 ?>
 <div class="wrap">
-  <h2><?php _e('ImageMagick Engine Settings','ime'); ?></h2>
+  <h2><?php _e('ImageMagick Engine Settings','imagemagick-engine'); ?></h2>
   <form action="options-general.php?page=ime" method="post" name="update_options">
     <?php wp_nonce_field('ime-options'); ?>
     <input type="hidden" name="ajax_url" id="ajax_url" value="<?php bloginfo('wpurl'); ?>/wp-admin/admin-ajax.php" />
@@ -800,12 +800,12 @@ function ime_option_page() {
       <div class="meta-box-sortables ui-sortable">
 	<div class="postbox">
 	  <div class="handlediv" title="Click to toggle"><br /></div>
-	  <h3 class="hndle"><span><?php _e('Regenerate Images','ime'); ?></span></h3>
+	  <h3 class="hndle"><span><?php _e('Regenerate Images','imagemagick-engine'); ?></span></h3>
 	  <div class="inside">
 	    <div class="submitbox">
 	      <table border=0>
 		<tr>
-		  <td scope="row" valign="top" style="padding-right: 20px;"><?php _e('Sizes','ime'); ?>:</td>
+		  <td scope="row" valign="top" style="padding-right: 20px;"><?php _e('Sizes','imagemagick-engine'); ?>:</td>
 		  <td>
 		    <?php
 		      foreach($sizes AS $s => $name) {
@@ -815,9 +815,9 @@ function ime_option_page() {
 		    </td>
 		</tr>
 	      </table>
-	      <p><?php _e('ImageMagick images too','ime'); ?>: 
+	      <p><?php _e('ImageMagick images too','imagemagick-engine'); ?>: 
 	      <input type="checkbox" name="force" value="1" /></p>
-	      <p><input class="button-primary" type="submit" name="regenerate-images" value="<?php _e('Regenerate', 'ime'); ?>" /> <?php _e('(this can take a long time)', 'ime'); ?></p>
+	      <p><input class="button-primary" type="submit" name="regenerate-images" value="<?php _e('Regenerate', 'imagemagick-engine'); ?>" /> <?php _e('(this can take a long time)', 'imagemagick-engine'); ?></p>
 	    </div>
 	  </div>
 	</div>
@@ -827,13 +827,13 @@ function ime_option_page() {
       <div id="post-body-content">
 	<table class="form-table">
 	  <tr>
-	    <th scope="row" valign="top"><?php _e('Enable enhanced image engine','ime'); ?>:</th>
+	    <th scope="row" valign="top"><?php _e('Enable enhanced image engine','imagemagick-engine'); ?>:</th>
 	    <td>
 	      <input type="checkbox" id="enabled" name="enabled" value="1" <?php echo $enabled ? " CHECKED " : ""; echo $any_valid ? '' : ' disabled=disabled '; ?> />
 	    </td>
 	  </tr>
 	  <tr>
-	    <th scope="row" valign="top"><?php _e('Image engine','ime'); ?>:</th>
+	    <th scope="row" valign="top"><?php _e('Image engine','imagemagick-engine'); ?>:</th>
 	    <td>
 	      <select name="mode">
 		<?php
@@ -850,30 +850,30 @@ function ime_option_page() {
 	    </td>
 	  </tr>
 	  <tr>
-	    <th scope="row" valign="top"><?php _e('Imagick PHP module','ime'); ?>:</th>
+	    <th scope="row" valign="top"><?php _e('Imagick PHP module','imagemagick-engine'); ?>:</th>
 	    <td>
 	      <img src="<?php echo ime_option_status_icon($modes_valid['php']); ?>" />
-	      <?php echo $modes_valid['php'] ? __('Imagick PHP module found', 'ime') : __('Imagick PHP module not found', 'ime'); ?>
+	      <?php echo $modes_valid['php'] ? __('Imagick PHP module found', 'imagemagick-engine') : __('Imagick PHP module not found', 'imagemagick-engine'); ?>
 	    </td>
 	  </tr>
 	  <tr>
-	    <th scope="row" valign="top"><?php _e('ImageMagick path','ime'); ?>:</th>
+	    <th scope="row" valign="top"><?php _e('ImageMagick path','imagemagick-engine'); ?>:</th>
 	    <td>
 	      <img id="cli_path_yes" class="cli_path_icon" src="<?php echo ime_option_status_icon(true); ?>" alt="" <?php ime_option_display($cli_path_ok); ?> />
 	      <img id="cli_path_no" class="cli_path_icon" src="<?php echo ime_option_status_icon(false); ?>" alt="<?php _e('Command not found', 'qp-qie'); ?>"  <?php ime_option_display(!$cli_path_ok); ?> />
 	      <img id="cli_path_progress" src="<?php echo ime_option_admin_images_url(); ?>wpspin_light.gif" alt="<?php _e('Testing command...', 'qp-qie'); ?>"  <?php ime_option_display(false); ?> />
 	      <input id="cli_path" type="text" name="cli_path" size="<?php echo max(30, strlen($cli_path) + 5); ?>" value="<?php echo $cli_path; ?>" />
-	      <input type="button" name="ime_cli_path_test" id="ime_cli_path_test" value="<?php _e('Test path', 'ime'); ?>" />
+	      <input type="button" name="ime_cli_path_test" id="ime_cli_path_test" value="<?php _e('Test path', 'imagemagick-engine'); ?>" />
 	    </td>
 	  </tr>
 	  <tr>
-	    <th scope="row" valign="top"><?php _e('ImageMagick quality','ime'); ?>:</th>
+	    <th scope="row" valign="top"><?php _e('ImageMagick quality','imagemagick-engine'); ?>:</th>
 	    <td>
-	      <input id="quality" type="text" name="quality" size="3" value="<?php echo $quality; ?>" /> <?php _e('(0-100, leave empty for default value, computed dynamically)', 'ime'); ?>
+	      <input id="quality" type="text" name="quality" size="3" value="<?php echo $quality; ?>" /> <?php _e('(0-100, leave empty for default value, computed dynamically)', 'imagemagick-engine'); ?>
 	    </td>
 	  </tr>
 	  <tr>
-	    <th scope="row" valign="top"><?php _e('Handle sizes','ime'); ?>:</th>
+	    <th scope="row" valign="top"><?php _e('Handle sizes','imagemagick-engine'); ?>:</th>
 	    <td>
 	      <?php
 		      foreach($sizes AS $s => $name) {
@@ -884,7 +884,7 @@ function ime_option_page() {
 	  </tr>
 	  <tr>
 	    <td>
-	      <input class="button-primary" type="submit" name="update_settings" value="<?php _e('Save Changes', 'ime'); ?>" />
+	      <input class="button-primary" type="submit" name="update_settings" value="<?php _e('Save Changes', 'imagemagick-engine'); ?>" />
 	    </td>
 	  </tr>
 	</table>
