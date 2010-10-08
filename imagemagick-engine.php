@@ -5,7 +5,7 @@
   Description: Improve the quality of re-sized images by replacing standard GD library with ImageMagick
   Author: Orangelab
   Author URI: http://www.orangelab.se
-  Version: 1.1.1
+  Version: 1.1.2
 
   Copyright 2010 Orangelab
 
@@ -396,7 +396,13 @@ function ime_im_cli_find_command() {
 	$possible_paths = array("/usr/bin", "/usr/local/bin");
 
 	foreach ($possible_paths AS $path) {
-		$path = realpath($path);
+		/*
+		 * This operation would give a warning if path is restricted by
+		 * open_basedir.
+		 */
+		$path = @realpath($path);
+		if (!$path)
+			continue;
 		if (ime_im_cli_check_command($path))
 			return $path;
 	}
@@ -457,7 +463,7 @@ function ime_ajax_test_im_path() {
 // Process single attachment ID
 function ime_ajax_process_image() {
 	global $ime_image_sizes, $ime_image_file, $_wp_additional_image_sizes;
-	
+
 	if (!current_user_can('manage_options') || !ime_mode_valid())
 		die('-1');
 
@@ -715,8 +721,10 @@ function ime_option_page() {
 	$sizes = array('thumbnail' => __('Thumbnail', 'imagemagick-engine')
 		       , 'medium' => __('Medium', 'imagemagick-engine')
 		       , 'large' => __('Large', 'imagemagick-engine')); // Standard sizes
-	if ( isset( $_wp_additional_image_sizes ) && count( $_wp_additional_image_sizes ) )
-		$sizes = array_merge( $sizes, array_keys( $_wp_additional_image_sizes ) );
+	if ( isset( $_wp_additional_image_sizes ) && count( $_wp_additional_image_sizes ) ) {
+		foreach ($_wp_additional_image_sizes as $name => $spec)
+			$sizes[$name] = $name;
+	}
 
 	if (isset($_POST['regenerate-images'])) {
 		ime_show_regenerate_images(array_keys($sizes));

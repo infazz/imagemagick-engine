@@ -1,9 +1,9 @@
 === ImageMagick Engine ===
 Contributors: orangelab
-Tags: image images picture imagemagick gd
+Tags: image, images, picture, imagemagick, gd
 Requires at least: 2.9
 Tested up to: 3.0.1
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 
 Improve the quality of re-sized images by replacing standard GD library with ImageMagick.
 
@@ -18,7 +18,7 @@ Features
 * Allow regeneration of existing images (optionally for selected image sizes only)
 * Configure image quality or use dynamically computed default value.
 
-Translations: Swedish
+Translations: German, Swedish
 
 Requires either ImageMagick binary or Imagick PHP module.
 
@@ -65,7 +65,12 @@ You can also find binary releases  at http://www.imagemagick.org including Windo
 
 == Changelog ==
 
-= 1.1.1=
+= 1.1.2 =
+* Fix bug with forced resize of custom image sizes
+* Fix warning with open_basedir restriction during path test
+* German translation thanks to Dirk Rottig
+
+= 1.1.1 =
 * Fix search-and-replace error from 1.1 that made it impossible to change settings! Thanks to Marco M. Jaeger for report!
 
 = 1.1 =
