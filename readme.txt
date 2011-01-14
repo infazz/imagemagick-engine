@@ -2,7 +2,7 @@
 Contributors: orangelab
 Tags: image, images, picture, imagemagick, gd
 Requires at least: 2.9
-Tested up to: 3.0.1
+Tested up to: 3.1-RC2
 Stable tag: 1.1.2
 
 Improve the quality of re-sized images by replacing standard GD library with ImageMagick.
@@ -64,6 +64,13 @@ You can also find binary releases  at http://www.imagemagick.org including Windo
 2. Administration interface
 
 == Changelog ==
+
+= 1.2.0 =
+* Rewrite image cropping for Imagick PHP module to make sure we keep image profiles. Thanks to Christian Münch for report
+* Improve test for IM executable
+* Administration: AJAXify image resizing, clarify engine selection, only load css/js on actual plugin page
+* Handle progressbar version incompatability for jQuery UI 1.8 (in WP 3.1) and jQuery UI 1.7 (in WP 3.0)
+* Tested with WordPress 3.1-RC2
 
 = 1.1.2 =
 * Fix bug with forced resize of custom image sizes
