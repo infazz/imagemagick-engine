@@ -54,9 +54,9 @@ You'll need full access to your server and a bit of technical know-how. If you d
 
 Don't do it yourself unless you know what you are doing.
 
-Most Linux distributions have a package for "ImageMagick". Some have a package for "php5-imagick". It is also possible to install the PHP module using the PEAR.
+Most Linux distributions have a package for "ImageMagick". Some have a package for "php5-imagick". It is possible to install the PHP module using PEAR.
 
-You can also find binary releases  at http://www.imagemagick.org including Windows installer.
+You can also find binary releases at http://www.imagemagick.org including a Windows installer.
 
 == Screenshots ==
 

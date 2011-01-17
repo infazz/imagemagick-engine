@@ -7,7 +7,7 @@
   Author URI: http://www.orangelab.se
   Version: 1.2.0
 
-  Copyright 2010 Orangelab
+  Copyright 2010, 2011 Orangelab
 
   Licenced under the GNU GPL:
 
