@@ -3,7 +3,7 @@ Contributors: orangelab
 Tags: image, images, picture, imagemagick, gd
 Requires at least: 2.9
 Tested up to: 3.1-RC2
-Stable tag: 1.1.2
+Stable tag: 1.2.0
 
 Improve the quality of re-sized images by replacing standard GD library with ImageMagick.
 
@@ -86,3 +86,8 @@ You can also find binary releases at http://www.imagemagick.org including a Wind
 
 = 1.0 =
 * Initial release
+
+== Upgrade Notice ==
+
+= 1.2.0 =
+Fixes plugin jQuery UI script incompatibility for WordPress 3.1

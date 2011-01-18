@@ -6,6 +6,7 @@
   Author: Orangelab
   Author URI: http://www.orangelab.se
   Version: 1.2.0
+  Text Domain: imagemagick-engine
 
   Copyright 2010, 2011 Orangelab
 
