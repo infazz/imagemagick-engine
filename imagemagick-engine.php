@@ -5,7 +5,7 @@
   Description: Improve the quality of re-sized images by replacing standard GD library with ImageMagick
   Author: Orangelab
   Author URI: http://www.orangelab.se
-  Version: 1.2.0
+  Version: 1.2.1
   Text Domain: imagemagick-engine
 
   Copyright 2010, 2011 Orangelab
@@ -29,9 +29,11 @@
 
 /*
  * Current todo list:
- * - empty!
+ * - position of resize progressbar in Chrome
+ * - do not iterate through all images if only resizing non-ime images
  *
  * Future todo list:
+ * - edit post insert image: add custom sizes?
  * - admin: smarter find path to executable (maybe try 'which' or package handler?)
  * - allow customization of command line / class functions (safely!), check memory limit
  * - handle TIF and other IM formats if possible
@@ -635,7 +637,7 @@ function ime_ajax_process_image() {
 
 /* Add admin page */
 function ime_admin_menu() {
-	$page = add_options_page('ImageMagick Engine', 'ImageMagick Engine', 8, 'imagemagick-engine', 'ime_option_page');
+	$page = add_options_page('ImageMagick Engine', 'ImageMagick Engine', 'manage_options', 'imagemagick-engine', 'ime_option_page');
 	
 	add_action('admin_print_scripts-' . $page, 'ime_admin_scripts');
 	add_action('admin_print_styles-' . $page, 'ime_admin_styles');

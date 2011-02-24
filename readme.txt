@@ -2,8 +2,8 @@
 Contributors: orangelab
 Tags: image, images, picture, imagemagick, gd
 Requires at least: 2.9
-Tested up to: 3.1-RC2
-Stable tag: 1.2.0
+Tested up to: 3.1
+Stable tag: 1.2.1
 
 Improve the quality of re-sized images by replacing standard GD library with ImageMagick.
 
@@ -64,6 +64,10 @@ You can also find binary releases at http://www.imagemagick.org including a Wind
 2. Administration interface
 
 == Changelog ==
+
+= 1.2.1 =
+* Fix deprecated warning
+* Tested with WordPress 3.1
 
 = 1.2.0 =
 * Rewrite image cropping for Imagick PHP module to make sure we keep image profiles. Thanks to Christian Münch for report
