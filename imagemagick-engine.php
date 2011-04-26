@@ -5,7 +5,7 @@
   Description: Improve the quality of re-sized images by replacing standard GD library with ImageMagick
   Author: Orangelab
   Author URI: http://www.orangelab.se
-  Version: 1.2.1
+  Version: 1.2.2-test1
   Text Domain: imagemagick-engine
 
   Copyright 2010, 2011 Orangelab
@@ -36,6 +36,7 @@
  * - edit post insert image: add custom sizes?
  * - admin: smarter find path to executable (maybe try 'which' or package handler?)
  * - allow customization of command line / class functions (safely!), check memory limit
+ * - unsharp mask, sharpening level options (perhaps on a picture-by-picture basis)
  * - handle TIF and other IM formats if possible
  * - can we use IM instead of GD in more places?
  */
@@ -486,7 +487,7 @@ function ime_im_cli_resize($old_file, $new_file, $width, $height, $crop) {
 	$old_file = addslashes($old_file);
 	$new_file = addslashes($new_file);
 
-	$cmd = "\"$cmd\" -limit memory 150mb -limit map 128mb -size {$width}x{$height} '{$old_file}' -resize {$width}x{$height}";
+	$cmd = "\"$cmd\" -limit memory 150mb -limit map 128mb -size {$width}x{$height} \"{$old_file}\" -resize {$width}x{$height}";
 	if ($crop)
 		$cmd .= "^ -gravity center -extent {$width}x{$height}";
 
@@ -494,7 +495,7 @@ function ime_im_cli_resize($old_file, $new_file, $width, $height, $crop) {
 	if (is_numeric($quality) && $quality >= 0 && $quality <= 100 && ime_im_filename_is_jpg($new_file))
 		$cmd .= " -quality " . intval($quality);
 
-	$cmd .= " '{$new_file}'";
+	$cmd .= " \"{$new_file}\"";
 	exec($cmd);
 
 	return file_exists($new_file);
