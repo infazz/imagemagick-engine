@@ -2,8 +2,8 @@
 Contributors: orangelab
 Tags: image, images, picture, imagemagick, gd
 Requires at least: 2.9
-Tested up to: 3.1.1
-Stable tag: 1.2.1
+Tested up to: 3.1.2
+Stable tag: 1.2.2
 
 Improve the quality of re-sized images by replacing standard GD library with ImageMagick.
 
@@ -75,8 +75,8 @@ You'll probably have problems with various other plugins too unless you fix this
 == Changelog ==
 
 = 1.2.2 =
-* Fix path with space (on Windows)
-* Tested with WordPress 3.1.1
+* Fixed filepath with spaces on Windows
+* Tested with WordPress 3.1.2
 * Added question to FAQ
 
 = 1.2.1 =
