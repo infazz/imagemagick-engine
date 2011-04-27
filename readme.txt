@@ -2,8 +2,8 @@
 Contributors: orangelab
 Tags: image, images, picture, imagemagick, gd
 Requires at least: 2.9
-Tested up to: 3.1
-Stable tag: 1.2.1
+Tested up to: 3.1.2
+Stable tag: 1.2.2
 
 Improve the quality of re-sized images by replacing standard GD library with ImageMagick.
 
@@ -58,12 +58,26 @@ Most Linux distributions have a package for "ImageMagick". Some have a package f
 
 You can also find binary releases at http://www.imagemagick.org including a Windows installer.
 
+= I get a fatal error when activating plugin =
+
+Some webhosts (1and1 for example) need to add a work-around to the .htaccess file.
+
+You might have to add the following line to your .htaccess file:
+AddType x-mapp-php5 .php
+
+You'll probably have problems with various other plugins too unless you fix this.
+
 == Screenshots ==
 
 1. Example image: ImageMagick vs GD
 2. Administration interface
 
 == Changelog ==
+
+= 1.2.2 =
+* Fixed filepath with spaces on Windows
+* Tested with WordPress 3.1.2
+* Added question to FAQ
 
 = 1.2.1 =
 * Fix deprecated warning
