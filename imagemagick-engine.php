@@ -5,7 +5,7 @@
   Description: Improve the quality of re-sized images by replacing standard GD library with ImageMagick
   Author: Orangelab
   Author URI: http://www.orangelab.se
-  Version: 1.2.2
+  Version: 1.2.3
   Text Domain: imagemagick-engine
 
   Copyright 2010, 2011 Orangelab
@@ -39,6 +39,7 @@
  * - unsharp mask, sharpening level options (perhaps on a picture-by-picture basis)
  * - handle TIF and other IM formats if possible
  * - can we use IM instead of GD in more places?
+ * - custom crop of images instead of blindly going for the middle
  */
 
 if (!defined('ABSPATH'))
@@ -106,7 +107,7 @@ function ime_init() {
 		 * jQuery UI version 1.7 and 1.8 seems incompatible...
 		 */
 		if (ime_script_version_compare('jquery-ui-core', '1.8', '>=')) {
-			wp_register_script('jquery-ui-progressbar', plugins_url('/js/ui.progressbar-1.8.7.js', __FILE__), array('jquery-ui-core', 'jquery-ui-widget'), '1.8.7');
+			wp_register_script('jquery-ui-progressbar', plugins_url('/js/ui.progressbar-1.8.9.js', __FILE__), array('jquery-ui-core', 'jquery-ui-widget'), '1.8.9');
 		} else {
 			wp_register_script('jquery-ui-progressbar', plugins_url('/js/ui.progressbar-1.7.2.js', __FILE__), array('jquery-ui-core'), '1.7.2');
 		}
@@ -292,7 +293,7 @@ function ime_filter_attachment_metadata($metadata, $attachment_id) {
 		$new_ext = $ext;
 	else
 		$new_ext = "jpg";
-
+	
 	/*
 	 * Do the actual resize
 	 */
@@ -322,6 +323,10 @@ function ime_filter_attachment_metadata($metadata, $attachment_id) {
 						  , 'width' => $dst_w
 						  , 'height' => $dst_h
 						  );
+
+		if (!isset($metadata['image-converter']) || !is_array($metadata['image-converter']))
+			$metadata['image-converter'] = array();
+		
 		$metadata['image-converter'][$size] = 'IME';
 
 		// Set correct file permissions
@@ -582,9 +587,12 @@ function ime_ajax_process_image() {
 
 	$metadata = wp_get_attachment_metadata($id);
 
-	if (!$force) {
+	// Do not re-encode IME images unless forced
+	if (!$force && isset($metadata['image-converter']) && is_array($metadata['image-converter'])) {
+		$converter = $metadata['image-converter'];
+		
 		foreach ($sizes AS $s => $ignore) {
-			if ($metadata['image-converter'][$s] == 'IME')
+			if (isset($converter[$s]) && $converter[$s] == 'IME')
 				unset($sizes[$s]);
 		}
 		if (count($sizes) < 1)
