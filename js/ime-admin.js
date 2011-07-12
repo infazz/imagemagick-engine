@@ -30,12 +30,15 @@ function imeStartResize() {
     rt_force = 0;
     
     jQuery('#regenerate-images-metabox input').each(function(){
-	if(jQuery(this).attr('name').substring(0,11) == "regen-size-" && jQuery(this).attr('checked')) {
-	    rt_sizes = rt_sizes + jQuery(this).attr('name').substring(11) + "|";
+	var i = jQuery(this);
+	var name = i.attr('name');
+
+	if(i.is(':checked') && name && name.substring(0,11) == "regen-size-") {
+	    rt_sizes = rt_sizes + name.substring(11) + "|";
 	}
     });
     
-    if(jQuery('#force').attr('checked')) {
+    if(jQuery('#force').is(':checked')) {
 	rt_force = 1;
     }
 
@@ -71,7 +74,7 @@ function imeUpdateMode() {
     jQuery("#ime-select-mode option").each(function(i,e) {
 	var o = jQuery(this);
 	var mode = o.val();
-	if (o.attr('selected'))
+	if (o.is(':selected'))
 	    jQuery('#ime-row-' + mode).show();
 	else
 	    jQuery('#ime-row-' + mode).hide();
