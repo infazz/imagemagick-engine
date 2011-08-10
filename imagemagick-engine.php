@@ -5,7 +5,7 @@
   Description: Improve the quality of re-sized images by replacing standard GD library with ImageMagick
   Author: Orangelab
   Author URI: http://www.orangelab.se
-  Version: 1.3.1-beta1
+  Version: 1.3.1-beta2
   Text Domain: imagemagick-engine
 
   Copyright 2010, 2011 Orangelab
@@ -424,17 +424,12 @@ function ime_im_cli_valid() {
 	return !empty($cmd) && is_executable($cmd);
 }
 
-// Escape cli executable
-function ime_im_cli_escape_cmd($cmd) {
-	return '"' . $cmd . '"';
-}
-
 // Test if we are allowed to exec executable!
 function ime_im_cli_check_executable($fullpath) {
 	if (!is_executable($fullpath))
 		return false;
 
-	@exec(ime_im_cli_escape_cmd($fullpath) . ' --version', $output);
+	@exec('"' . $fullpath . '" --version', $output);
 
 	return count($output) > 0;
 }
@@ -456,7 +451,7 @@ function ime_try_realpath($path) {
 function ime_im_cli_check_command($path, $executable='convert') {
 	$path = ime_try_realpath($path);
 
-	$cmd = escapeshellcmd($path . '/' . $executable);
+	$cmd = $path . '/' . $executable;
 	if (ime_im_cli_check_executable($cmd))
 		return $cmd;
 
@@ -502,7 +497,6 @@ function ime_im_cli_resize($old_file, $new_file, $width, $height, $crop) {
 	$cmd = ime_im_cli_command();
 	if (empty($cmd))
 		return false;
-	$cmd = ime_im_cli_escape_cmd($cmd);
 
 	$old_file = addslashes($old_file);
 	$new_file = addslashes($new_file);
@@ -510,7 +504,7 @@ function ime_im_cli_resize($old_file, $new_file, $width, $height, $crop) {
 	$geometry = $width . 'x' . $height;
 
 	// limits are 150mb and 128mb
-	$cmd = "$cmd \"$old_file\" -limit memory 157286400 -limit map 134217728 -resize $geometry";
+	$cmd = "\"$cmd\" \"$old_file\" -limit memory 157286400 -limit map 134217728 -resize $geometry";
 	if ($crop) {
 		// '^' is an escape character on Windows
 		$cmd .= (ime_is_windows() ? '^^' : '^') . " -gravity center -extent $geometry";
