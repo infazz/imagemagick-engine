@@ -5,7 +5,7 @@
   Description: Improve the quality of re-sized images by replacing standard GD library with ImageMagick
   Author: Orangelab
   Author URI: http://www.orangelab.se
-  Version: 1.3.1-beta2
+  Version: 1.3.1
   Text Domain: imagemagick-engine
 
   Copyright 2010, 2011 Orangelab
@@ -29,9 +29,12 @@
 
 /*
  * Current todo list:
- * - do not iterate through all images if only resizing non-ime images
+ * - test command line version string
+ * - test php module with required image formats
+ * - handle errors in resize, fall back to GD
  *
  * Future todo list:
+ * - do not iterate through all images if only resizing non-ime images
  * - edit post insert image: add custom sizes?
  * - admin: smarter find path to executable (maybe try 'which' or package handler?)
  * - allow customization of command line / class functions (safely!), check memory limit
