@@ -2,7 +2,7 @@
 Contributors: orangelab
 Tags: image, images, picture, imagemagick, gd
 Requires at least: 2.9
-Tested up to: 3.2.1
+Tested up to: 3.3-beta2
 Stable tag: 1.3.1
 
 Improve the quality of re-sized images by replacing standard GD library with ImageMagick.
@@ -73,6 +73,12 @@ You'll probably have problems with various other plugins too unless you fix this
 2. Administration interface
 
 == Changelog ==
+
+= 1.3.2-beta1 =
+* Tested with WP 3.3-beta2
+* Use WordPress version of jQuery UI progressbar if available
+* Split plugin init into early and late part
+* Fix PHP notice (in initial plugin configuration)
 
 = 1.3.1 =
 * Tested with WP 3.2.1

@@ -5,7 +5,7 @@
   Description: Improve the quality of re-sized images by replacing standard GD library with ImageMagick
   Author: Orangelab
   Author URI: http://www.orangelab.se
-  Version: 1.3.1
+  Version: 1.3.2-beta1
   Text Domain: imagemagick-engine
 
   Copyright 2010, 2011 Orangelab
@@ -29,6 +29,7 @@
 
 /*
  * Current todo list:
+ * - can we use --strip (or similar) without loosing color profile?
  * - test command line version string
  * - test php module with required image formats
  * - handle errors in resize, fall back to GD
@@ -82,10 +83,11 @@ $ime_image_file = null;
 /*
  * Functions
  */
-add_action('plugins_loaded', 'ime_init');
+add_action('plugins_loaded', 'ime_init_early');
+add_action('init', 'ime_init');
 
-/* Plugin setup */
-function ime_init() {
+/* Plugin setup (early) */
+function ime_init_early() {
 	load_plugin_textdomain('imagemagick-engine', false, dirname(plugin_basename(__FILE__)) . '/languages');
 
 	if (ime_active()) {
@@ -93,7 +95,10 @@ function ime_init() {
 		add_filter('wp_read_image_metadata', 'ime_filter_read_image_metadata', 10, 3);
 		add_filter('wp_generate_attachment_metadata', 'ime_filter_attachment_metadata', 10, 2);
 	}
+}
 
+/* Plugin setup */
+function ime_init() {
 	if (is_admin()) {
 		add_action('admin_menu', 'ime_admin_menu');
 		add_filter('plugin_action_links', 'ime_filter_plugin_actions', 10, 2 );
@@ -102,17 +107,20 @@ function ime_init() {
 		add_action('wp_ajax_ime_test_im_path', 'ime_ajax_test_im_path');
 		add_action('wp_ajax_ime_process_image', 'ime_ajax_process_image');
 		add_action('wp_ajax_ime_regeneration_get_images','ime_ajax_regeneration_get_images');
-		
-		wp_register_script('ime-admin', plugins_url('/js/ime-admin.js', __FILE__), array('jquery'));
 
-		/*
-		 * jQuery UI version 1.7 and 1.8 seems incompatible...
-		 */
-		if (ime_script_version_compare('jquery-ui-core', '1.8', '>=')) {
-			wp_register_script('jquery-ui-progressbar', plugins_url('/js/ui.progressbar-1.8.9.js', __FILE__), array('jquery-ui-core', 'jquery-ui-widget'), '1.8.9');
-		} else {
-			wp_register_script('jquery-ui-progressbar', plugins_url('/js/ui.progressbar-1.7.2.js', __FILE__), array('jquery-ui-core'), '1.7.2');
+		// Do we have a WP native version of progressbar?
+		if (!wp_script_is('jquery-ui-progressbar', 'registered')) {
+			/*
+			 * jQuery UI version 1.7 and 1.8 seems incompatible...
+			 */
+			if (ime_script_version_compare('jquery-ui-core', '1.8', '>=')) {
+				wp_register_script('jquery-ui-progressbar', plugins_url('/js/ui.progressbar-1.8.9.js', __FILE__), array('jquery-ui-core', 'jquery-ui-widget'), '1.8.9');
+			} else {
+				wp_register_script('jquery-ui-progressbar', plugins_url('/js/ui.progressbar-1.7.2.js', __FILE__), array('jquery-ui-core'), '1.7.2');
+			}
 		}
+		
+		wp_register_script('ime-admin', plugins_url('/js/ime-admin.js', __FILE__), array('jquery', 'jquery-ui-dialog', 'jquery-ui-progressbar'));
 	}
 }
 
@@ -666,19 +674,17 @@ function ime_ajax_process_image() {
 function ime_admin_menu() {
 	$page = add_options_page('ImageMagick Engine', 'ImageMagick Engine', 'manage_options', 'imagemagick-engine', 'ime_option_page');
 	
-	add_action('admin_print_scripts-' . $page, 'ime_admin_scripts');
-	add_action('admin_print_styles-' . $page, 'ime_admin_styles');
+	add_action('admin_print_scripts-' . $page, 'ime_admin_print_scripts');
+	add_action('admin_print_styles-' . $page, 'ime_admin_print_styles');
 }
 
 /* Enqueue admin page scripts */
-function ime_admin_scripts() {	
+function ime_admin_print_scripts() {
 	wp_enqueue_script('ime-admin');
-	wp_enqueue_script('jquery-ui-dialog');
-	wp_enqueue_script('jquery-ui-progressbar');
 }
 
 /* Enqueue admin page style */
-function ime_admin_styles() {
+function ime_admin_print_styles() {
 	wp_enqueue_style( 'ime-admin-style', plugins_url('/css/ime-admin.css', __FILE__), array());
 }
 
@@ -794,7 +800,7 @@ function ime_option_page() {
 	}
 
 	$current_mode = ime_get_option('mode');
-	if (!$modes_valid[$current_mode])
+	if (!isset($modes_valid[$current_mode]) || !$modes_valid[$current_mode])
 		$current_mode = null;
 	if (is_null($current_mode) && $any_valid) {
 		foreach ($modes_valid AS $m => $valid) {
