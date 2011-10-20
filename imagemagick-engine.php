@@ -5,7 +5,7 @@
   Description: Improve the quality of re-sized images by replacing standard GD library with ImageMagick
   Author: Orangelab
   Author URI: http://www.orangelab.se
-  Version: 1.2.3
+  Version: 1.3.2-beta1
   Text Domain: imagemagick-engine
 
   Copyright 2010, 2011 Orangelab
@@ -29,10 +29,13 @@
 
 /*
  * Current todo list:
- * - position of resize progressbar in Chrome
- * - do not iterate through all images if only resizing non-ime images
+ * - can we use --strip (or similar) without loosing color profile?
+ * - test command line version string
+ * - test php module with required image formats
+ * - handle errors in resize, fall back to GD
  *
  * Future todo list:
+ * - do not iterate through all images if only resizing non-ime images
  * - edit post insert image: add custom sizes?
  * - admin: smarter find path to executable (maybe try 'which' or package handler?)
  * - allow customization of command line / class functions (safely!), check memory limit
@@ -80,10 +83,11 @@ $ime_image_file = null;
 /*
  * Functions
  */
-add_action('plugins_loaded', 'ime_init');
+add_action('plugins_loaded', 'ime_init_early');
+add_action('init', 'ime_init');
 
-/* Plugin setup */
-function ime_init() {
+/* Plugin setup (early) */
+function ime_init_early() {
 	load_plugin_textdomain('imagemagick-engine', false, dirname(plugin_basename(__FILE__)) . '/languages');
 
 	if (ime_active()) {
@@ -91,7 +95,10 @@ function ime_init() {
 		add_filter('wp_read_image_metadata', 'ime_filter_read_image_metadata', 10, 3);
 		add_filter('wp_generate_attachment_metadata', 'ime_filter_attachment_metadata', 10, 2);
 	}
+}
 
+/* Plugin setup */
+function ime_init() {
 	if (is_admin()) {
 		add_action('admin_menu', 'ime_admin_menu');
 		add_filter('plugin_action_links', 'ime_filter_plugin_actions', 10, 2 );
@@ -100,17 +107,20 @@ function ime_init() {
 		add_action('wp_ajax_ime_test_im_path', 'ime_ajax_test_im_path');
 		add_action('wp_ajax_ime_process_image', 'ime_ajax_process_image');
 		add_action('wp_ajax_ime_regeneration_get_images','ime_ajax_regeneration_get_images');
-		
-		wp_register_script('ime-admin', plugins_url('/js/ime-admin.js', __FILE__), array('jquery'));
 
-		/*
-		 * jQuery UI version 1.7 and 1.8 seems incompatible...
-		 */
-		if (ime_script_version_compare('jquery-ui-core', '1.8', '>=')) {
-			wp_register_script('jquery-ui-progressbar', plugins_url('/js/ui.progressbar-1.8.9.js', __FILE__), array('jquery-ui-core', 'jquery-ui-widget'), '1.8.9');
-		} else {
-			wp_register_script('jquery-ui-progressbar', plugins_url('/js/ui.progressbar-1.7.2.js', __FILE__), array('jquery-ui-core'), '1.7.2');
+		// Do we have a WP native version of progressbar?
+		if (!wp_script_is('jquery-ui-progressbar', 'registered')) {
+			/*
+			 * jQuery UI version 1.7 and 1.8 seems incompatible...
+			 */
+			if (ime_script_version_compare('jquery-ui-core', '1.8', '>=')) {
+				wp_register_script('jquery-ui-progressbar', plugins_url('/js/ui.progressbar-1.8.9.js', __FILE__), array('jquery-ui-core', 'jquery-ui-widget'), '1.8.9');
+			} else {
+				wp_register_script('jquery-ui-progressbar', plugins_url('/js/ui.progressbar-1.7.2.js', __FILE__), array('jquery-ui-core'), '1.7.2');
+			}
 		}
+		
+		wp_register_script('ime-admin', plugins_url('/js/ime-admin.js', __FILE__), array('jquery', 'jquery-ui-dialog', 'jquery-ui-progressbar'));
 	}
 }
 
@@ -377,7 +387,8 @@ function ime_im_php_resize($old_file, $new_file, $width, $height, $crop) {
 		$im->setImageCompression(Imagick::COMPRESSION_JPEG);
 		$im->setImageCompressionQuality($quality);
 	}
-	$im->setImageOpacity(1.0);
+	if (method_exists($im, 'setImageOpacity'))
+		$im->setImageOpacity(1.0);
 
 	if ($crop) {
 		/*
@@ -429,16 +440,27 @@ function ime_im_cli_check_executable($fullpath) {
 	if (!is_executable($fullpath))
 		return false;
 
-	@exec($fullpath . ' --version', $output);
+	@exec('"' . $fullpath . '" --version', $output);
 
 	return count($output) > 0;
 }
 
+/*
+ * Try to get realpath of path
+ *
+ * This won't work if there is open_basename restrictions.
+ */
+function ime_try_realpath($path) {
+	$realpath = @realpath($path);
+	if ($realpath)
+		return $realpath;
+	else
+		return $path;
+}
+
 // Check if path leads to ImageMagick executable
 function ime_im_cli_check_command($path, $executable='convert') {
-	$path = realpath($path);
-	if (!is_dir($path))
-		return null;
+	$path = ime_try_realpath($path);
 
 	$cmd = $path . '/' . $executable;
 	if (ime_im_cli_check_executable($cmd))
@@ -456,13 +478,6 @@ function ime_im_cli_find_command($executable='convert') {
 	$possible_paths = array("/usr/bin", "/usr/local/bin");
 
 	foreach ($possible_paths AS $path) {
-		/*
-		 * This operation would give a warning if path is restricted by
-		 * open_basedir.
-		 */
-		$path = @realpath($path);
-		if (!$path)
-			continue;
 		if (ime_im_cli_check_command($path, $executable))
 			return $path;
 	}
@@ -483,6 +498,11 @@ function ime_im_cli_command($executable='convert') {
 	return ime_im_cli_check_command($path, $executable);
 }
 
+// Check if we are running under Windows (which differs for character escape)
+function ime_is_windows() {
+	return (constant('PHP_SHLIB_SUFFIX') == 'dll');
+}
+
 // Resize using ImageMagick executable
 function ime_im_cli_resize($old_file, $new_file, $width, $height, $crop) {
 	$cmd = ime_im_cli_command();
@@ -492,15 +512,21 @@ function ime_im_cli_resize($old_file, $new_file, $width, $height, $crop) {
 	$old_file = addslashes($old_file);
 	$new_file = addslashes($new_file);
 
-	$cmd = "\"$cmd\" -limit memory 150mb -limit map 128mb -size {$width}x{$height} \"{$old_file}\" -resize {$width}x{$height}";
-	if ($crop)
-		$cmd .= "^ -gravity center -extent {$width}x{$height}";
+	$geometry = $width . 'x' . $height;
+
+	// limits are 150mb and 128mb
+	$cmd = "\"$cmd\" \"$old_file\" -limit memory 157286400 -limit map 134217728 -resize $geometry";
+	if ($crop) {
+		// '^' is an escape character on Windows
+		$cmd .= (ime_is_windows() ? '^^' : '^') . " -gravity center -extent $geometry";
+	} else
+		$cmd .= "!"; // force these dimensions
 
 	$quality = ime_get_option('quality', '-1');
 	if (is_numeric($quality) && $quality >= 0 && $quality <= 100 && ime_im_filename_is_jpg($new_file))
 		$cmd .= " -quality " . intval($quality);
 
-	$cmd .= " \"{$new_file}\"";
+	$cmd .= ' "' .  $new_file . '"';
 	exec($cmd);
 
 	return file_exists($new_file);
@@ -648,19 +674,17 @@ function ime_ajax_process_image() {
 function ime_admin_menu() {
 	$page = add_options_page('ImageMagick Engine', 'ImageMagick Engine', 'manage_options', 'imagemagick-engine', 'ime_option_page');
 	
-	add_action('admin_print_scripts-' . $page, 'ime_admin_scripts');
-	add_action('admin_print_styles-' . $page, 'ime_admin_styles');
+	add_action('admin_print_scripts-' . $page, 'ime_admin_print_scripts');
+	add_action('admin_print_styles-' . $page, 'ime_admin_print_styles');
 }
 
 /* Enqueue admin page scripts */
-function ime_admin_scripts() {	
+function ime_admin_print_scripts() {
 	wp_enqueue_script('ime-admin');
-	wp_enqueue_script('jquery-ui-dialog');
-	wp_enqueue_script('jquery-ui-progressbar');
 }
 
 /* Enqueue admin page style */
-function ime_admin_styles() {
+function ime_admin_print_styles() {
 	wp_enqueue_style( 'ime-admin-style', plugins_url('/css/ime-admin.css', __FILE__), array());
 }
 
@@ -746,7 +770,7 @@ function ime_option_page() {
 		if (isset($_POST['mode']) && array_key_exists($_POST['mode'], $ime_available_modes))
 			ime_set_option('mode', $_POST['mode']);
 		if (isset($_POST['cli_path']))
-			ime_set_option('cli_path', realpath($_POST['cli_path']));
+			ime_set_option('cli_path', ime_try_realpath(trim($_POST['cli_path'])));
 		if (isset($_POST['quality'])) {
 			if (is_numeric($_POST['quality']))
 				ime_set_option('quality', min(100, max(0, intval($_POST['quality']))));
@@ -776,7 +800,7 @@ function ime_option_page() {
 	}
 
 	$current_mode = ime_get_option('mode');
-	if (!$modes_valid[$current_mode])
+	if (!isset($modes_valid[$current_mode]) || !$modes_valid[$current_mode])
 		$current_mode = null;
 	if (is_null($current_mode) && $any_valid) {
 		foreach ($modes_valid AS $m => $valid) {
@@ -828,7 +852,7 @@ function ime_option_page() {
 		  <td>
 		    <?php
 		      foreach($sizes AS $s => $name) {
-			      echo '<input type="checkbox" name="regen-size-' . $s . '" value="1" ' . ($handle_sizes[$s] ? ' CHECKED ' : '') . ' /> ' . $name . '<br />';
+			      echo '<input type="checkbox" name="regen-size-' . $s . '" value="1" ' . (isset($handle_sizes[$s]) && $handle_sizes[$s] ? ' CHECKED ' : '') . ' /> ' . $name . '<br />';
 		      }
 		      ?>
 		      </td>
@@ -909,7 +933,7 @@ function ime_option_page() {
 	      <td>
 		<?php
 		      foreach($sizes AS $s => $name) {
-			      echo '<input type="checkbox" name="handle-' . $s . '" value="1" ' . ($handle_sizes[$s] ? ' CHECKED ' : '') . ' /> ' . $name . '<br />';
+			      echo '<input type="checkbox" name="handle-' . $s . '" value="1" ' . (isset($handle_sizes[$s]) && $handle_sizes[$s] ? ' CHECKED ' : '') . ' /> ' . $name . '<br />';
 		      }
 		?>
 	      </td>

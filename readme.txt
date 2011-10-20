@@ -2,8 +2,8 @@
 Contributors: orangelab
 Tags: image, images, picture, imagemagick, gd
 Requires at least: 2.9
-Tested up to: 3.1.2
-Stable tag: 1.2.3
+Tested up to: 3.3-beta2
+Stable tag: 1.3.1
 
 Improve the quality of re-sized images by replacing standard GD library with ImageMagick.
 
@@ -73,6 +73,26 @@ You'll probably have problems with various other plugins too unless you fix this
 2. Administration interface
 
 == Changelog ==
+
+= 1.3.2-beta1 =
+* Tested with WP 3.3-beta2
+* Use WordPress version of jQuery UI progressbar if available
+* Split plugin init into early and late part
+* Fix PHP notice (in initial plugin configuration)
+
+= 1.3.1 =
+* Tested with WP 3.2.1
+* Bugfix: escape '^' character on Windows (thanks to alx359)
+* clean up IM command line argument handling a bit
+
+= 1.3.0 =
+* Tested agains WP 3.2
+* Fix JS to be compatible with jQuery 1.6
+* Remove some PHP notices
+* Change command line limit values to specifik byte amounts (instead of "mb") for compatability with really old IM versions
+* Handle open_basename restrictions better
+* Handle older versions (pre 6.3.1) of PHP Imagick class
+* IM and WordPress compute aspect ratio slightly differently, force the WP values
 
 = 1.2.3 =
 * Fix bug in resize all images handling, also remove some PHP notices. Thanks to Andreas Kleinschmidt for the report
