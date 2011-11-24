@@ -5,7 +5,7 @@
   Description: Improve the quality of re-sized images by replacing standard GD library with ImageMagick
   Author: Orangelab
   Author URI: http://www.orangelab.se
-  Version: 1.3.2-beta1
+  Version: 1.3.2-beta2
   Text Domain: imagemagick-engine
 
   Copyright 2010, 2011 Orangelab
@@ -29,6 +29,8 @@
 
 /*
  * Current todo list:
+ * - test and handle negative returns in regen
+ * - show more info when resizing: current id, something spinning?
  * - can we use --strip (or similar) without loosing color profile?
  * - test command line version string
  * - test php module with required image formats
@@ -149,6 +151,21 @@ function ime_script_version_compare($handle, $version, $compare = '>=') {
 
 	return version_compare($query->ver, $version, $compare);
 }
+
+// Get array of available image sizes
+function ime_available_image_sizes() {
+	global $_wp_additional_image_sizes;
+	$sizes = array('thumbnail' => __('Thumbnail', 'imagemagick-engine')
+		       , 'medium' => __('Medium', 'imagemagick-engine')
+		       , 'large' => __('Large', 'imagemagick-engine')); // Standard sizes
+	if ( isset( $_wp_additional_image_sizes ) && count( $_wp_additional_image_sizes ) ) {
+		foreach ($_wp_additional_image_sizes as $name => $spec)
+			$sizes[$name] = $name;
+	}
+
+	return $sizes;
+}
+
 
 
 /*
@@ -569,7 +586,12 @@ function ime_ajax_regeneration_get_images() {
 function ime_ajax_process_image() {
 	global $ime_image_sizes, $ime_image_file, $_wp_additional_image_sizes;
 
+	error_reporting(E_ALL);
+
 	if (!current_user_can('manage_options') || !ime_mode_valid())
+		die('-1');
+
+	if (!isset($_REQUEST['id']))
 		die('-1');
 
 	$id = intval($_REQUEST['id']);
@@ -642,6 +664,10 @@ function ime_ajax_process_image() {
 	 * Make sure they get deleted.
 	 */
 
+	// No old sizes, nothing to check
+	if (!isset($metadata['sizes']) || empty($metadata['sizes']))
+		die('1');
+	
 	$dir = trailingslashit(dirname($ime_image_file));
 
 	foreach ($metadata['sizes'] as $size => $sizeinfo) {
@@ -672,10 +698,13 @@ function ime_ajax_process_image() {
 
 /* Add admin page */
 function ime_admin_menu() {
-	$page = add_options_page('ImageMagick Engine', 'ImageMagick Engine', 'manage_options', 'imagemagick-engine', 'ime_option_page');
-	
-	add_action('admin_print_scripts-' . $page, 'ime_admin_print_scripts');
-	add_action('admin_print_styles-' . $page, 'ime_admin_print_styles');
+	$ime_page = add_options_page('ImageMagick Engine', 'ImageMagick Engine', 'manage_options', 'imagemagick-engine', 'ime_option_page');
+
+	$script_pages = array($ime_page, 'media.php', 'media-new.php', 'media-upload.php');
+	foreach ($script_pages as $page) {
+		add_action('admin_print_scripts-' . $page, 'ime_admin_print_scripts');
+		add_action('admin_print_styles-' . $page, 'ime_admin_print_styles');
+	}
 }
 
 /* Enqueue admin page scripts */
@@ -708,13 +737,34 @@ function ime_filter_media_meta($content, $post) {
 	if (!is_array($metadata) || !array_key_exists('image-converter', $metadata))
 		return $content;
 
+	$ime = false;
 	foreach ($metadata['image-converter'] as $size => $converter) {
 		if ($converter != 'IME')
 			continue;
 
-		return $content . '</p><p><i>' . __('Resized using ImageMagick Engine', 'imagemagick-engine') . '</i>';
+		$ime = true;
+		break;
 	}
 
+	if ($ime) {
+		$content .= '</p><p><i>' . __('Resized using ImageMagick Engine', 'imagemagick-engine') . '</i>';
+		$resize = __('Force resize', 'imagemagick-engine');
+		$force = '1';
+	} else {
+		$resize = __('Resize using ImageMagick Engine', 'imagemagick-engine');
+		$force = '0';
+	}
+	$handle_sizes = ime_get_option('handle_sizes');
+	$sizes = array();
+	foreach ($handle_sizes as $s => $h) {
+		if (!$h)
+			continue;
+		$sizes[] = $s;
+	}
+	$sizes = implode('|', $sizes);
+	$resize_call = 'imeRegenMediaImage(' . $post->ID . ', \'' . $sizes . '\', ' . $force . '); return false;';
+	$content .= ' <a href="#" id="ime-regen-link-' . $post->ID . '" class="button" onclick="' . $resize_call . '">' . $resize . '</a>';
+	
 	return $content;
 }
 
@@ -749,14 +799,7 @@ function ime_option_page() {
 	if (count($_POST) > 0)
 		check_admin_referer('ime-options');
 
-	global $_wp_additional_image_sizes;
-	$sizes = array('thumbnail' => __('Thumbnail', 'imagemagick-engine')
-		       , 'medium' => __('Medium', 'imagemagick-engine')
-		       , 'large' => __('Large', 'imagemagick-engine')); // Standard sizes
-	if ( isset( $_wp_additional_image_sizes ) && count( $_wp_additional_image_sizes ) ) {
-		foreach ($_wp_additional_image_sizes as $name => $spec)
-			$sizes[$name] = $name;
-	}
+	$sizes = ime_available_image_sizes();
 
 	if (isset($_POST['regenerate-images'])) {
 		ime_show_regenerate_images(array_keys($sizes));
