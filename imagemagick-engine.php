@@ -29,8 +29,8 @@
 
 /*
  * Current todo list:
- * - test and handle negative returns in regen
  * - show more info when resizing: current id, something spinning?
+ * - test and handle negative returns in regen
  * - can we use --strip (or similar) without loosing color profile?
  * - test command line version string
  * - test php module with required image formats
@@ -585,8 +585,8 @@ function ime_ajax_regeneration_get_images() {
 // Process single attachment ID
 function ime_ajax_process_image() {
 	global $ime_image_sizes, $ime_image_file, $_wp_additional_image_sizes;
-
-	error_reporting(E_ALL);
+	
+	error_reporting(E_ERROR | E_WARNING);
 
 	if (!current_user_can('manage_options') || !ime_mode_valid())
 		die('-1');
@@ -710,6 +710,14 @@ function ime_admin_menu() {
 /* Enqueue admin page scripts */
 function ime_admin_print_scripts() {
 	wp_enqueue_script('ime-admin');
+
+	$data = array('noimg' => __('You dont have any images to regenerate', 'imagemagick-engine')
+		      , 'done' => __('All done!', 'imagemagick-engine')
+		      , 'processed_fmt' => __('Processed %d images', 'imagemagick-engine')
+		      , 'failed' => '<strong>' . __('Failed to resize image!', 'imagemagick-engine') . '</strong>'
+		      , 'resized' => __('Resized using ImageMagick Engine', 'imagemagick-engine')
+		      );
+	wp_localize_script('ime-admin', 'ime_admin', $data);
 }
 
 /* Enqueue admin page style */
@@ -732,25 +740,32 @@ function ime_filter_plugin_actions($links, $file) {
  * Add admin information if attachment is converted using plugin
  */
 function ime_filter_media_meta($content, $post) {
-	$metadata = wp_get_attachment_metadata($post->ID);
-
-	if (!is_array($metadata) || !array_key_exists('image-converter', $metadata))
+	if (!ime_mode_valid())
 		return $content;
 
-	$ime = false;
-	foreach ($metadata['image-converter'] as $size => $converter) {
-		if ($converter != 'IME')
-			continue;
+	if (!gd_edit_image_support($post->post_mime_type))
+		return $content;
+	
+	$metadata = wp_get_attachment_metadata($post->ID);
 
-		$ime = true;
-		break;
+	$ime = false;
+	if (is_array($metadata) && array_key_exists('image-converter', $metadata)) {
+		foreach ($metadata['image-converter'] as $size => $converter) {
+			if ($converter != 'IME')
+				continue;
+
+			$ime = true;
+			break;
+		}
 	}
 
+	$content .= '</p><p>';
 	if ($ime) {
-		$content .= '</p><p><i>' . __('Resized using ImageMagick Engine', 'imagemagick-engine') . '</i>';
+		$content .= ' <span class="ime-media-message" id="ime-message-' . $post->ID . '">' . __('Resized using ImageMagick Engine', 'imagemagick-engine') . '</span>';
 		$resize = __('Force resize', 'imagemagick-engine');
 		$force = '1';
 	} else {
+		$content .= '<span class="ime-media-message" id="ime-message-' . $post->ID . '" style="display: none;"></span>';
 		$resize = __('Resize using ImageMagick Engine', 'imagemagick-engine');
 		$force = '0';
 	}
@@ -763,7 +778,7 @@ function ime_filter_media_meta($content, $post) {
 	}
 	$sizes = implode('|', $sizes);
 	$resize_call = 'imeRegenMediaImage(' . $post->ID . ', \'' . $sizes . '\', ' . $force . '); return false;';
-	$content .= ' <a href="#" id="ime-regen-link-' . $post->ID . '" class="button" onclick="' . $resize_call . '">' . $resize . '</a>';
+	$content .= ' <a href="#" id="ime-regen-link-' . $post->ID . '" class="button ime-regen-button" onclick="' . $resize_call . '">' . $resize . '</a>';
 	
 	return $content;
 }
@@ -878,10 +893,6 @@ function ime_option_page() {
   <h2><?php _e('ImageMagick Engine Settings','imagemagick-engine'); ?></h2>
   <form action="options-general.php?page=imagemagick-engine" method="post" name="update_options">
     <?php wp_nonce_field('ime-options'); ?>
-    <input type="hidden" name="rt_message_noimg" id="rt_message_noimg" value="<?php _e('You dont have any images to regenerate', 'imagemagick-engine'); ?>" />
-    <input type="hidden" name="rt_message_done" id="rt_message_done" value="<?php _e('All done!', 'imagemagick-engine'); ?>" />
-    <input type="hidden" name="rt_message_processed" id="rt_message_processed" value="<?php _e('Processed', 'imagemagick-engine'); ?>" />
-    <input type="hidden" name="rt_message_images" id="rt_message_images" value="<?php _e('images', 'imagemagick-engine'); ?>" />
   <div id="poststuff" class="metabox-holder has-right-sidebar">
     <div class="inner-sidebar">
       <div class="meta-box-sortables ui-sortable">

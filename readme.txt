@@ -2,7 +2,7 @@
 Contributors: orangelab
 Tags: image, images, picture, imagemagick, gd
 Requires at least: 2.9
-Tested up to: 3.3-beta2
+Tested up to: 3.3.1
 Stable tag: 1.3.1
 
 Improve the quality of re-sized images by replacing standard GD library with ImageMagick.
@@ -18,7 +18,7 @@ Features
 * Allow regeneration of existing images (optionally for selected image sizes only)
 * Configure image quality or use dynamically computed default value.
 
-Translations: German, Swedish
+Translations: French, German, Swedish
 
 Requires either ImageMagick binary or Imagick PHP module.
 
@@ -73,6 +73,13 @@ You'll probably have problems with various other plugins too unless you fix this
 2. Administration interface
 
 == Changelog ==
+
+= 1.3.2-beta2 =
+* Tested with WP 3.3.1
+* More sanity tests in ajax resize code
+* Add more precision to resize % when large nr of images
+* Resize / Force resize button in media library
+* French translation thanks to Damien Fabreguettes
 
 = 1.3.2-beta1 =
 * Tested with WP 3.3-beta2

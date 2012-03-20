@@ -3,6 +3,7 @@ var rt_images = "";
 var rt_total = 1;
 var rt_count = 1;
 var rt_force = 0;
+var rt_precision = 0;
 var rt_sizes = "";
 
 // Ajax test IM path
@@ -42,9 +43,18 @@ function imeStartResize() {
 	rt_force = 1;
     }
 
+    if (rt_images.length > 200)
+	rt_precision = 1;
+    if (rt_images.length > 2000)
+	rt_precision = 2;
+    if (rt_images.length > 20000)
+	rt_precision = 3;
+
+    var rt_percent = 0;
+
     rt_count = 1;
     jQuery("#regenbar").progressbar();
-    jQuery("#regenbar-percent").html( "0%" );
+    jQuery("#regenbar-percent").html( rt_percent.toFixed(rt_precision) + " %" );
     jQuery('#regeneration').dialog('open');
 
     imeRegenImages( rt_images.shift() );
@@ -60,7 +70,7 @@ function imeRegenImages( id ) {
 	// todo: test and handle negative return
 
 	if ( rt_images.length <= 0 ) {
-	    jQuery('#regen-message').removeClass('hidden').html("<p><strong>"+jQuery('#rt_message_done').val()+"</strong> "+jQuery('#rt_message_processed').val()+" "+rt_total+" "+jQuery('#rt_message_images').val()+".</p>");
+	    jQuery('#regen-message').removeClass('hidden').html("<p><strong>" + ime_admin.done + "</strong> " + ime_admin.processed_fmt.replace('%d', rt_total) + ".</p>");
 	    jQuery('#regeneration').dialog('close');
 	    jQuery("#regenbar").progressbar( "value", 0 );
 	    return;
@@ -69,7 +79,7 @@ function imeRegenImages( id ) {
 	var next_id = rt_images.shift();
 	var rt_percent = ( rt_count / rt_total ) * 100;
 	jQuery("#regenbar").progressbar( "value", rt_percent );
-	jQuery("#regenbar-percent").html( "(" + next_id + ")" + Math.round(rt_percent) + "%" );
+	jQuery("#regenbar-percent").html( rt_percent.toFixed(rt_precision) + " %" );
 	rt_count = rt_count + 1;
 
 	// tail recursion
@@ -79,15 +89,17 @@ function imeRegenImages( id ) {
 
 // Regen single image on media pages
 function imeRegenMediaImage( id, sizes, force ) {
-    var link = jQuery('#ime-regen-link-' + id);
-    link.hide();
+    jQuery('#ime-regen-link-' + id).remove();
+    var message = jQuery('#ime-message-' + id).html('').addClass('ime-working').show();
     jQuery.post(ajaxurl, { action: "ime_process_image", id: id, sizes: sizes, force: force }, function(data) {
-	link.show();
 	var n = parseInt(data, 10);
-	if (isNaN(n) || n < 0)
-	    alert('Failed to resize image!');
-	else
-	    alert('Resize done');
+	if (isNaN(n) || n < 0) {
+	    message.removeClass('ime-working').html(ime_admin.failed);
+	    if (isNaN(n))
+		alert(data);
+	} else {
+	    message.removeClass('ime-working').html(ime_admin.resized);
+	}
     });
 }
 
@@ -128,7 +140,7 @@ jQuery(document).ready(function($) {
 	    if(rt_total > 0) {
 		imeStartResize();
 	    } else {
-		alert($('#rt_message_noimg').val());
+		alert(ime_admin.noimg);
 	    }
 	});
     });
