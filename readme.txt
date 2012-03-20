@@ -74,7 +74,7 @@ You'll probably have problems with various other plugins too unless you fix this
 
 == Changelog ==
 
-= 1.3.2-beta2 =
+= 1.4.0 =
 * Tested with WP 3.3.1
 * More sanity tests in ajax resize code
 * Add more precision to resize % when large nr of images

@@ -39,16 +39,17 @@ function imeStartResize() {
 	}
     });
     
-    if(jQuery('#force').is(':checked')) {
+    if (jQuery('#force').is(':checked'))
 	rt_force = 1;
-    }
-
-    if (rt_images.length > 200)
-	rt_precision = 1;
-    if (rt_images.length > 2000)
-	rt_precision = 2;
-    if (rt_images.length > 20000)
+    
+    if (rt_total > 20000)
 	rt_precision = 3;
+    else if (rt_total > 2000)
+	rt_precision = 2;
+    else if (rt_total > 200)
+	rt_precision = 1;
+    else
+	rt_precision = 0;
 
     var rt_percent = 0;
 
@@ -67,6 +68,7 @@ function imeRegenImages( id ) {
 	if (isNaN(n)) {
 	    alert(data);
 	}
+
 	// todo: test and handle negative return
 
 	if ( rt_images.length <= 0 ) {
@@ -89,16 +91,28 @@ function imeRegenImages( id ) {
 
 // Regen single image on media pages
 function imeRegenMediaImage( id, sizes, force ) {
-    jQuery('#ime-regen-link-' + id).remove();
-    var message = jQuery('#ime-message-' + id).html('').addClass('ime-working').show();
+    var link = jQuery('#ime-regen-link-' + id);
+
+    if (link.hasClass('disabled'))
+	return false;
+
+    link.addClass('disabled');
+
+    var spinner = jQuery('#ime-spinner-' + id).children('img');
+    spinner.show();
+
+    var message = jQuery('#ime-message-' + id).show();
     jQuery.post(ajaxurl, { action: "ime_process_image", id: id, sizes: sizes, force: force }, function(data) {
+	spinner.hide();
+	link.removeClass('disabled');
+
 	var n = parseInt(data, 10);
 	if (isNaN(n) || n < 0) {
-	    message.removeClass('ime-working').html(ime_admin.failed);
+	    message.html(ime_admin.failed);
 	    if (isNaN(n))
 		alert(data);
 	} else {
-	    message.removeClass('ime-working').html(ime_admin.resized);
+	    message.html(ime_admin.resized);
 	}
     });
 }

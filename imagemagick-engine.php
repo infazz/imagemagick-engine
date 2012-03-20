@@ -5,7 +5,7 @@
   Description: Improve the quality of re-sized images by replacing standard GD library with ImageMagick
   Author: Orangelab
   Author URI: http://www.orangelab.se
-  Version: 1.3.2-beta2
+  Version: 1.4.0-beta1
   Text Domain: imagemagick-engine
 
   Copyright 2010, 2011 Orangelab
@@ -761,11 +761,11 @@ function ime_filter_media_meta($content, $post) {
 
 	$content .= '</p><p>';
 	if ($ime) {
-		$content .= ' <span class="ime-media-message" id="ime-message-' . $post->ID . '">' . __('Resized using ImageMagick Engine', 'imagemagick-engine') . '</span>';
-		$resize = __('Force resize', 'imagemagick-engine');
+		$message = ' <div class="ime-media-message" id="ime-message-' . $post->ID . '">' . __('Resized using ImageMagick Engine', 'imagemagick-engine') . '</div>';
+		$resize = __('Resize image', 'imagemagick-engine');
 		$force = '1';
 	} else {
-		$content .= '<span class="ime-media-message" id="ime-message-' . $post->ID . '" style="display: none;"></span>';
+		$message = '<div class="ime-media-message" id="ime-message-' . $post->ID . '" style="display: none;"></div>';
 		$resize = __('Resize using ImageMagick Engine', 'imagemagick-engine');
 		$force = '0';
 	}
@@ -778,7 +778,7 @@ function ime_filter_media_meta($content, $post) {
 	}
 	$sizes = implode('|', $sizes);
 	$resize_call = 'imeRegenMediaImage(' . $post->ID . ', \'' . $sizes . '\', ' . $force . '); return false;';
-	$content .= ' <a href="#" id="ime-regen-link-' . $post->ID . '" class="button ime-regen-button" onclick="' . $resize_call . '">' . $resize . '</a>';
+	$content .= '<a href="#" id="ime-regen-link-' . $post->ID . '" class="button ime-regen-button" onclick="' . $resize_call . '">' . $resize . '</a>' . ' <div id="ime-spinner-' . $post->ID . '" class="ime-spinner"><img src="' . admin_url('images/wpspin_light.gif') . '" /></div>' . $message;
 	
 	return $content;
 }
