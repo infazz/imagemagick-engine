@@ -75,3 +75,29 @@
 	-webkit-border-radius: 0 0 5px 5px;
 	-khtml-border-radius: 0 0 5px 5px;
 }
+
+.ime-regen-button {
+    float: left;
+}
+
+.ime-spinner {
+    width: 16px;
+    height: 16px;
+
+    float: left;
+
+    padding: 3px 8px;
+}
+
+.ime-spinner img {
+    display: none;
+}
+
+.ime-media-message {
+    float: left;
+
+    padding: 0 3px;
+
+    font-style: italic;
+    line-height: 22px;
+}

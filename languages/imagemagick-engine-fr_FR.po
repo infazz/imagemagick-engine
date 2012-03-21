@@ -1,161 +1,162 @@
+# Copyright (C) 2012 ImageMagick Engine
+# This file is distributed under the same license as the ImageMagick Engine package.
 msgid ""
 msgstr ""
-"Project-Id-Version: ImageMagick Engine\n"
+"Project-Id-Version: ImageMagick Engine 1.3.2-beta2\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/imagemagick-engine\n"
-"POT-Creation-Date: 2012-03-20 15:51:52+00:00\n"
-"PO-Revision-Date: \n"
-"Last-Translator: Johan Eenfeldt <johan@orangelab.se>\n"
-"Language-Team: \n"
-"Language: \n"
+"POT-Creation-Date: 2012-03-20 12:52:49+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2012-03-21 03:37+0100\n"
+"Last-Translator: Damien Fabreguettes <damien.fa@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 
 #: imagemagick-engine.php:158
 msgid "Thumbnail"
-msgstr "Miniatyr"
+msgstr "Miniatures"
 
 #: imagemagick-engine.php:159
 msgid "Medium"
-msgstr "Mellan"
+msgstr "Medium"
 
 #: imagemagick-engine.php:160
 msgid "Large"
-msgstr "Stor"
+msgstr "Large"
 
 #: imagemagick-engine.php:714
 msgid "You dont have any images to regenerate"
-msgstr "Du har inga bilder att skala om"
+msgstr "Il n'y a aucune image à regénérer."
 
 #: imagemagick-engine.php:715
 msgid "All done!"
-msgstr "Färdigt!"
+msgstr "Terminé."
 
 #: imagemagick-engine.php:716
 msgid "Processed %d images"
-msgstr "Skalat om %d bilder"
+msgstr "%d images en cours de traitement..."
 
 #: imagemagick-engine.php:717
 msgid "Failed to resize image!"
-msgstr "Kunde inte skala om bild!"
+msgstr "Échec lors du procédé de redimension de l'image."
 
 #: imagemagick-engine.php:718
 #: imagemagick-engine.php:764
 msgid "Resized using ImageMagick Engine"
-msgstr "Omskalad av ImageMagick Engine"
+msgstr "Redimensionner via ImageMagick."
 
 #: imagemagick-engine.php:732
 #: imagemagick-engine.php:938
 msgid "Settings"
-msgstr "Inställningar"
+msgstr "Paramètres."
 
 #: imagemagick-engine.php:765
-msgid "Resize image"
-msgstr "Skala om bild"
+msgid "Force resize"
+msgstr "Forcer la retaille."
 
 #: imagemagick-engine.php:769
 msgid "Resize using ImageMagick Engine"
-msgstr "Omskala med ImageMagick Engine"
+msgstr "Redimensionner via ImageMagick."
 
 #: imagemagick-engine.php:848
 msgid "Settings updated"
-msgstr "Inställningar uppdaterade"
+msgstr "Paramètres mis à jour."
 
 #: imagemagick-engine.php:884
 msgid "No valid ImageMagick mode found! Please check %sFAQ%s for installation instructions."
-msgstr "Ingen fungerande ImageMagick-installation hittades! Se %sFAQ%s för instruktioner hur du installerar."
+msgstr "Aucun mode ImageMagick valide. Veuillez consulter la %sFAQ%s pour d'éventuels conseils d'installation."
 
 #: imagemagick-engine.php:888
 msgid "ImageMagick Engine is not enabled."
-msgstr "ImageMagick Engine är inte aktiverad."
+msgstr "ImageMagick Engine n'est pas activé."
 
 #: imagemagick-engine.php:893
 msgid "ImageMagick Engine Settings"
-msgstr "ImageMagick Engine Inställningar"
+msgstr "Paramètres de ImageMagick Engine."
 
 #: imagemagick-engine.php:900
 msgid "Regenerate Images"
-msgstr "Skala om bilder"
+msgstr "Regénérer les images."
 
 #: imagemagick-engine.php:905
 msgid "Sizes"
-msgstr "Bilder"
+msgstr "Tailles "
 
 #: imagemagick-engine.php:915
 msgid "ImageMagick images too"
-msgstr "ImageMagick bilder också"
+msgstr "Inclure les images ImageMagick "
 
 #: imagemagick-engine.php:919
 msgid "Resize will use standard WordPress functions."
-msgstr "Omskalningen kommer använda Wordpress standardfunktioner."
+msgstr "Retailler en utilisant les fonctions standards de Wordpress "
 
 #: imagemagick-engine.php:921
 msgid "Regenerate"
-msgstr "Skala om"
+msgstr "Regénérer"
 
 #: imagemagick-engine.php:921
 msgid "(this can take a long time)"
-msgstr "(det här kan ta lång tid)"
+msgstr "(cela peut prendre quelques minutes)"
 
 #: imagemagick-engine.php:924
 msgid "Regenerating images"
-msgstr "Skalar om bilder"
+msgstr "Traitement des images en cours"
 
 #: imagemagick-engine.php:925
 msgid "You must enable Javascript in order to proceed!"
-msgstr "Du måste tillåta Javascript i din webbläsare för att kunna fortsätta!"
+msgstr "Il est nécéssaire d'activer le Javascript"
 
 #: imagemagick-engine.php:942
 msgid "Enable enhanced image engine"
-msgstr "Aktivera ImageMagick Engine"
+msgstr "Activer le traitement d'image avancé"
 
 #: imagemagick-engine.php:948
 msgid "Image engine"
-msgstr "Bildmotor"
+msgstr "Moteur d'image"
 
 #: imagemagick-engine.php:963
 msgid "Imagick PHP module"
-msgstr "Imagick PHP modul"
+msgstr "module PHP Imagick PHP"
 
 #: imagemagick-engine.php:966
 msgid "Imagick PHP module found"
-msgstr "Imagick PHP modul finns."
+msgstr "Module PHP Imagick trouvé"
 
 #: imagemagick-engine.php:966
 msgid "Imagick PHP module not found"
-msgstr "Imagick PHP modul finns ej."
+msgstr "Module PHP Imagick introuvable"
 
 #: imagemagick-engine.php:970
 msgid "ImageMagick path"
-msgstr "ImageMagick sökväg"
+msgstr "Chemin d'accès vers ImageMagick"
 
 #: imagemagick-engine.php:973
 msgid "Command not found"
-msgstr "Kommando hittades inte"
+msgstr "Commande introuvable"
 
 #: imagemagick-engine.php:974
 msgid "Testing command..."
-msgstr "Testar kommando..."
+msgstr "Test de la commande ..."
 
 #: imagemagick-engine.php:976
 msgid "Test path"
-msgstr "Testa sökväg"
+msgstr "Test du chemin d'accès ..."
 
 #: imagemagick-engine.php:980
 msgid "ImageMagick quality"
-msgstr "ImageMagick kvalité"
+msgstr "Qualité ImageMagick "
 
 #: imagemagick-engine.php:982
 msgid "(0-100, leave empty for default value, computed dynamically)"
-msgstr "(0-100, lämna tomt för automatiskt beräknat värde)"
+msgstr "(0-100. Pour la valeur automatique, ne rien entrer dans le champ)."
 
 #: imagemagick-engine.php:986
 msgid "Handle sizes"
-msgstr "Hantera storlekar"
+msgstr "Tailles à traiter "
 
 #: imagemagick-engine.php:997
 msgid "Save Changes"
-msgstr "Spara ändringar"
+msgstr "Sauvegarder les changements"
 
 #. Plugin Name of the plugin/theme
 msgid "ImageMagick Engine"
@@ -167,7 +168,7 @@ msgstr "http://wp.orangelab.se/imagemagick-engine/"
 
 #. Description of the plugin/theme
 msgid "Improve the quality of re-sized images by replacing standard GD library with ImageMagick"
-msgstr "Förbättra kvalitén på dina omskalade bilder genom att ersätta GD med ImageMagick"
+msgstr "Améliore la qualité de la retaille d'image en remplaçant l'utilisation de GD par celle d'ImageMagick."
 
 #. Author of the plugin/theme
 msgid "Orangelab"
@@ -177,23 +178,3 @@ msgstr "Orangelab"
 msgid "http://www.orangelab.se"
 msgstr "http://www.orangelab.se"
 
-#~ msgid "Force resize"
-#~ msgstr "Tvinga Omskalning"
-
-#~ msgid "images"
-#~ msgstr "bilder"
-
-#~ msgid "Unable to find any images. Are you sure <a href='%s'>some exist</a>?"
-#~ msgstr ""
-#~ "Hittade inga bilder. Är du säker på att <a href='%s'>du har laddat upp "
-#~ "några</a>?"
-
-#~ msgid ""
-#~ "Please be patient while images are regenerated. This can take a long time "
-#~ "if you have many images."
-#~ msgstr ""
-#~ "Var god vänta medan bilderna skalas om. Det kan ta lång tid om du har "
-#~ "många bilder."
-
-#~ msgid "Working..."
-#~ msgstr "Arbetar..."

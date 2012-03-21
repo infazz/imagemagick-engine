@@ -3,6 +3,7 @@ var rt_images = "";
 var rt_total = 1;
 var rt_count = 1;
 var rt_force = 0;
+var rt_precision = 0;
 var rt_sizes = "";
 
 // Ajax test IM path
@@ -30,18 +31,31 @@ function imeStartResize() {
     rt_force = 0;
     
     jQuery('#regenerate-images-metabox input').each(function(){
-	if(jQuery(this).attr('name').substring(0,11) == "regen-size-" && jQuery(this).attr('checked')) {
-	    rt_sizes = rt_sizes + jQuery(this).attr('name').substring(11) + "|";
+	var i = jQuery(this);
+	var name = i.attr('name');
+
+	if(i.is(':checked') && name && name.substring(0,11) == "regen-size-") {
+	    rt_sizes = rt_sizes + name.substring(11) + "|";
 	}
     });
     
-    if(jQuery('#force').attr('checked')) {
+    if (jQuery('#force').is(':checked'))
 	rt_force = 1;
-    }
+    
+    if (rt_total > 20000)
+	rt_precision = 3;
+    else if (rt_total > 2000)
+	rt_precision = 2;
+    else if (rt_total > 200)
+	rt_precision = 1;
+    else
+	rt_precision = 0;
+
+    var rt_percent = 0;
 
     rt_count = 1;
     jQuery("#regenbar").progressbar();
-    jQuery("#regenbar-percent").html( "0%" );
+    jQuery("#regenbar-percent").html( rt_percent.toFixed(rt_precision) + " %" );
     jQuery('#regeneration').dialog('open');
 
     imeRegenImages( rt_images.shift() );
@@ -49,21 +63,57 @@ function imeStartResize() {
 
 //Regeneration of progressbar
 function imeRegenImages( id ) {
-    jQuery.post(ajaxurl, { action: "ime_process_image", id: id, sizes: rt_sizes, force: rt_force }, function() {
-	var rt_percent = ( rt_count / rt_total ) * 100;
-	jQuery("#regenbar").progressbar( "value", rt_percent );
-	jQuery("#regenbar-percent").html( Math.round(rt_percent) + "%" );
-	rt_count = rt_count + 1;
+    jQuery.post(ajaxurl, { action: "ime_process_image", id: id, sizes: rt_sizes, force: rt_force }, function(data) {
+	var n = parseInt(data, 10);
+	if (isNaN(n)) {
+	    alert(data);
+	}
+
+	// todo: test and handle negative return
 
 	if ( rt_images.length <= 0 ) {
-	    jQuery('#regen-message').removeClass('hidden').html("<p><strong>"+jQuery('#rt_message_done').val()+"</strong> "+jQuery('#rt_message_processed').val()+" "+rt_total+" "+jQuery('#rt_message_images').val()+".</p>");
+	    jQuery('#regen-message').removeClass('hidden').html("<p><strong>" + ime_admin.done + "</strong> " + ime_admin.processed_fmt.replace('%d', rt_total) + ".</p>");
 	    jQuery('#regeneration').dialog('close');
 	    jQuery("#regenbar").progressbar( "value", 0 );
 	    return;
 	}
 
+	var next_id = rt_images.shift();
+	var rt_percent = ( rt_count / rt_total ) * 100;
+	jQuery("#regenbar").progressbar( "value", rt_percent );
+	jQuery("#regenbar-percent").html( rt_percent.toFixed(rt_precision) + " %" );
+	rt_count = rt_count + 1;
+
 	// tail recursion
-	imeRegenImages( rt_images.shift() );
+	imeRegenImages(next_id);
+    });
+}
+
+// Regen single image on media pages
+function imeRegenMediaImage( id, sizes, force ) {
+    var link = jQuery('#ime-regen-link-' + id);
+
+    if (link.hasClass('disabled'))
+	return false;
+
+    link.addClass('disabled');
+
+    var spinner = jQuery('#ime-spinner-' + id).children('img');
+    spinner.show();
+
+    var message = jQuery('#ime-message-' + id).show();
+    jQuery.post(ajaxurl, { action: "ime_process_image", id: id, sizes: sizes, force: force }, function(data) {
+	spinner.hide();
+	link.removeClass('disabled');
+
+	var n = parseInt(data, 10);
+	if (isNaN(n) || n < 0) {
+	    message.html(ime_admin.failed);
+	    if (isNaN(n))
+		alert(data);
+	} else {
+	    message.html(ime_admin.resized);
+	}
     });
 }
 
@@ -71,7 +121,7 @@ function imeUpdateMode() {
     jQuery("#ime-select-mode option").each(function(i,e) {
 	var o = jQuery(this);
 	var mode = o.val();
-	if (o.attr('selected'))
+	if (o.is(':selected'))
 	    jQuery('#ime-row-' + mode).show();
 	else
 	    jQuery('#ime-row-' + mode).hide();
@@ -104,7 +154,7 @@ jQuery(document).ready(function($) {
 	    if(rt_total > 0) {
 		imeStartResize();
 	    } else {
-		alert($('#rt_message_noimg').val());
+		alert(ime_admin.noimg);
 	    }
 	});
     });
