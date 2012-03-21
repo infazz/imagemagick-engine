@@ -86,7 +86,7 @@
 
     float: left;
 
-    padding: 3px;
+    padding: 3px 8px;
 }
 
 .ime-spinner img {
@@ -94,6 +94,10 @@
 }
 
 .ime-media-message {
-    font-size: 10px;
+    float: left;
+
+    padding: 0 3px;
+
+    font-style: italic;
     line-height: 22px;
 }

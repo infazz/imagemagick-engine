@@ -5,10 +5,10 @@
   Description: Improve the quality of re-sized images by replacing standard GD library with ImageMagick
   Author: Orangelab
   Author URI: http://www.orangelab.se
-  Version: 1.4.0-beta1
+  Version: 1.4.0
   Text Domain: imagemagick-engine
 
-  Copyright 2010, 2011 Orangelab
+  Copyright 2010, 2011, 2012 Orangelab
 
   Licenced under the GNU GPL:
 
@@ -29,9 +29,8 @@
 
 /*
  * Current todo list:
- * - show more info when resizing: current id, something spinning?
  * - test and handle negative returns in regen
- * - can we use --strip (or similar) without loosing color profile?
+ * - can we use --strip (or similar) without loosing color profile? (http://www.imagemagick.org/discourse-server/viewtopic.php?f=1&t=14168)
  * - test command line version string
  * - test php module with required image formats
  * - handle errors in resize, fall back to GD
@@ -778,7 +777,7 @@ function ime_filter_media_meta($content, $post) {
 	}
 	$sizes = implode('|', $sizes);
 	$resize_call = 'imeRegenMediaImage(' . $post->ID . ', \'' . $sizes . '\', ' . $force . '); return false;';
-	$content .= '<a href="#" id="ime-regen-link-' . $post->ID . '" class="button ime-regen-button" onclick="' . $resize_call . '">' . $resize . '</a>' . ' <div id="ime-spinner-' . $post->ID . '" class="ime-spinner"><img src="' . admin_url('images/wpspin_light.gif') . '" /></div>' . $message;
+	$content .= '<a href="#" id="ime-regen-link-' . $post->ID . '" class="button ime-regen-button" onclick="' . $resize_call . '">' . $resize . '</a> ' . $message . ' <div id="ime-spinner-' . $post->ID . '" class="ime-spinner"><img src="' . admin_url('images/wpspin_light.gif') . '" /></div>';
 	
 	return $content;
 }
