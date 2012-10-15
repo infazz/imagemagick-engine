@@ -5,7 +5,7 @@
   Description: Improve the quality of re-sized images by replacing standard GD library with ImageMagick
   Author: Orangelab
   Author URI: http://www.orangelab.se
-  Version: 1.4.0
+  Version: 1.5.0
   Text Domain: imagemagick-engine
 
   Copyright 2010, 2011, 2012 Orangelab
@@ -27,25 +27,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/*
- * Current todo list:
- * - test and handle negative returns in regen
- * - can we use --strip (or similar) without loosing color profile? (http://www.imagemagick.org/discourse-server/viewtopic.php?f=1&t=14168)
- * - test command line version string
- * - test php module with required image formats
- * - handle errors in resize, fall back to GD
- *
- * Future todo list:
- * - do not iterate through all images if only resizing non-ime images
- * - edit post insert image: add custom sizes?
- * - admin: smarter find path to executable (maybe try 'which' or package handler?)
- * - allow customization of command line / class functions (safely!), check memory limit
- * - unsharp mask, sharpening level options (perhaps on a picture-by-picture basis)
- * - handle TIF and other IM formats if possible
- * - can we use IM instead of GD in more places?
- * - custom crop of images instead of blindly going for the middle
- */
-
 if (!defined('ABSPATH'))
 	die('Must not be called directly');
 
@@ -64,14 +45,18 @@ define('IME_OPTION_VERSION', 1);
 $ime_options_default = array('enabled' => false
 			     , 'mode' => null
 			     , 'cli_path' => null
-			     , 'handle_sizes' => array('thumbnail' => true, 'medium' => true, 'large' => true)
+			     , 'handle_sizes' => array('thumbnail' => 'size', 'medium' => 'quality', 'large' => 'quality')
+			     , 'quality' => array('quality' => -1, 'size' => 70)
 			     , 'quality' => ''
 			     , 'version' => IME_OPTION_VERSION
 			     );
 
 // Available modes
-$ime_available_modes = array('php' => "Imagick PHP module"
-			     , 'cli' => "ImageMagick command-line");
+$ime_available_modes = array( 'php' => __( 'Imagick PHP module', 'imagemagick-engine' )
+			      , 'cli' => __( 'ImageMagick command-line', 'imagemagick-engine' ) );
+
+// Available quality modes
+$ime_available_quality_modes = array( 'quality', 'size', 'skip' );
 
 // Current options
 $ime_options = null;
@@ -244,6 +229,28 @@ function ime_set_option($option_name, $option_value, $store = false) {
 		ime_store_options();
 }
 
+// Get image quality setting for type
+function ime_get_quality($resize_mode = 'quality') {
+	$quality = ime_get_option('quality', '-1');
+	if (!$quality)
+		return -1;
+	if (!is_array($quality))
+		return $quality;
+	if (isset($quality[$resize_mode]))
+		return $quality[$resize_mode];
+	
+	return -1;
+}
+
+// Get resize mode for size
+function ime_get_resize_mode( $size ) {
+	$handle_sizes = ime_get_option('handle_sizes');
+	if ( isset( $handle_sizes[ $size ] ) && is_string( $handle_sizes[ $size ] ) )
+		return $handle_sizes[ $size ];
+	else
+		return 'quality'; // default to quality
+}
+
 
 /*
  * WP integration & image handling functions
@@ -262,8 +269,8 @@ function ime_filter_image_sizes($sizes) {
 	global $ime_image_sizes;
 
 	$handle_sizes = ime_get_option('handle_sizes');
-	foreach ($handle_sizes AS $s => $handle) {
-		if (!$handle || !array_key_exists($s, $sizes))
+	foreach ($handle_sizes as $s => $handle) {
+		if (!$handle || $handle == 'skip' || !array_key_exists($s, $sizes))
 			continue;
 		$ime_image_sizes[$s] = $sizes[$s];
 		unset($sizes[$s]);
@@ -319,7 +326,7 @@ function ime_filter_attachment_metadata($metadata, $attachment_id) {
 		$new_ext = $ext;
 	else
 		$new_ext = "jpg";
-	
+
 	/*
 	 * Do the actual resize
 	 */
@@ -341,7 +348,7 @@ function ime_filter_attachment_metadata($metadata, $attachment_id) {
 		$suffix = "{$dst_w}x{$dst_h}";
 		$new_filename = "{$dir}/{$namebase}-{$suffix}.{$new_ext}";
 
-		$resized = ime_im_resize($ime_image_file, $new_filename, $dst_w, $dst_h, $crop);
+		$resized = ime_im_resize( $ime_image_file, $new_filename, $dst_w, $dst_h, $crop, ime_get_resize_mode( $size ) );
 		if (!$resized)
 			continue;
 
@@ -366,14 +373,16 @@ function ime_filter_attachment_metadata($metadata, $attachment_id) {
 }
 
 // Resize file by calling mode specific resize function
-function ime_im_resize($old_file, $new_file, $width, $height, $crop) {
+function ime_im_resize( $old_file, $new_file, $width, $height, $crop, $resize_mode = 'quality' ) {
 	$mode = ime_get_option("mode");
 	$fn = 'ime_im_' . $mode . '_valid';
 	if (empty($mode) || !function_exists($fn) || !call_user_func($fn))
 		return false;
 
 	$fn = 'ime_im_' . $mode . '_resize';
-	return (function_exists($fn) && call_user_func($fn, $old_file, $new_file, $width, $height, $crop));
+	$success = ( function_exists( $fn ) && call_user_func( $fn, $old_file, $new_file, $width, $height, $crop, $resize_mode ) );
+	do_action( 'ime_after_resize', $success, $old_file, $new_file, $width, $height, $crop, $resize_mode );
+	return $success;
 }
 
 // Is this the filename of a jpeg?
@@ -393,52 +402,59 @@ function ime_im_php_valid() {
 }
 
 // Resize file using PHP Imagick class
-function ime_im_php_resize($old_file, $new_file, $width, $height, $crop) {
-	$im = new Imagick($old_file);
-	if (!$im->valid())
+function ime_im_php_resize( $old_file, $new_file, $width, $height, $crop, $resize_mode = 'quality' ) {
+	$im = new Imagick( $old_file );
+	if ( ! $im->valid() )
 		return false;
 
-	$quality = ime_get_option('quality', '-1');
-	if (is_numeric($quality) && $quality >= 0 && $quality <= 100 && ime_im_filename_is_jpg($new_file)) {
-		$im->setImageCompression(Imagick::COMPRESSION_JPEG);
-		$im->setImageCompressionQuality($quality);
-	}
-	if (method_exists($im, 'setImageOpacity'))
-		$im->setImageOpacity(1.0);
-
-	if ($crop) {
-		/*
-		 * Unfortunately we cannot use the PHP module
-		 * cropThumbnailImage() function as it strips profile data.
-		 *
-		 * Crop an area proportional to target $width and $height and
-		 * fall through to scaleImage() below.
-		 */
-		
-		$geo = $im->getImageGeometry();
-		$orig_width = $geo['width'];
-		$orig_height = $geo['height'];
-
-		if(($orig_width / $width) < ($orig_height / $height)) {
-			$crop_width = $orig_width;
-			$crop_height = ceil(($height * $orig_width) / $width);
-			$off_x = 0;
-			$off_y = ceil(($orig_height - $crop_height) / 2);
-		} else {
-			$crop_width = ceil(($width * $orig_height) / $height);
-			$crop_height = $orig_height;
-			$off_x = ceil(($orig_width - $crop_width) / 2);
-			$off_y = 0;
+	try {
+		$quality = ime_get_quality( $resize_mode );
+		if ( is_numeric( $quality ) && $quality >= 0 && $quality <= 100 && ime_im_filename_is_jpg( $new_file ) ) {
+			$im->setImageCompression( Imagick::COMPRESSION_JPEG );
+			$im->setImageCompressionQuality( $quality );
 		}
-		$im->cropImage($crop_width, $crop_height, $off_x, $off_y);
+		if ( method_exists( $im, 'setImageOpacity' ) )
+			$im->setImageOpacity( 1.0 );
+
+		if ( $resize_mode == 'size' )
+			$im->stripImage();
+
+		if ( $crop ) {
+			/*
+			 * Unfortunately we cannot use the PHP module
+			 * cropThumbnailImage() function as it strips profile data.
+			 *
+			 * Crop an area proportional to target $width and $height and
+			 * fall through to scaleImage() below.
+			 */
+			
+			$geo = $im->getImageGeometry();
+			$orig_width = $geo[ 'width' ];
+			$orig_height = $geo[ 'height' ];
+
+			if( ( $orig_width / $width ) < ( $orig_height / $height ) ) {
+				$crop_width = $orig_width;
+				$crop_height = ceil( ( $height * $orig_width ) / $width );
+				$off_x = 0;
+				$off_y = ceil( ( $orig_height - $crop_height ) / 2 );
+			} else {
+				$crop_width = ceil( ( $width * $orig_height ) / $height );
+				$crop_height = $orig_height;
+				$off_x = ceil( ( $orig_width - $crop_width ) / 2 );
+				$off_y = 0;
+			}
+			$im->cropImage( $crop_width, $crop_height, $off_x, $off_y );
+		}
+		
+		$im->scaleImage( $width, $height, true );
+
+		$im->setImagePage( $width, $height, 0, 0 ); // to make sure canvas is correct
+		$im->writeImage( $new_file );
+
+		return file_exists( $new_file );
+	} catch ( ImagickException $ie ) {
+		return false;
 	}
-	
-	$im->scaleImage($width, $height, true);
-
-	$im->setImagePage($width, $height, 0, 0); // to make sure canvas is correct
-	$im->writeImage($new_file);
-
-	return file_exists($new_file);
 }
 
 /*
@@ -520,7 +536,7 @@ function ime_is_windows() {
 }
 
 // Resize using ImageMagick executable
-function ime_im_cli_resize($old_file, $new_file, $width, $height, $crop) {
+function ime_im_cli_resize( $old_file, $new_file, $width, $height, $crop, $resize_mode = 'quality' ) {
 	$cmd = ime_im_cli_command();
 	if (empty($cmd))
 		return false;
@@ -538,9 +554,12 @@ function ime_im_cli_resize($old_file, $new_file, $width, $height, $crop) {
 	} else
 		$cmd .= "!"; // force these dimensions
 
-	$quality = ime_get_option('quality', '-1');
+	$quality = ime_get_quality( $resize_mode );
 	if (is_numeric($quality) && $quality >= 0 && $quality <= 100 && ime_im_filename_is_jpg($new_file))
 		$cmd .= " -quality " . intval($quality);
+
+	if ( $resize_mode == 'size' )
+		$cmd .= ' -strip';
 
 	$cmd .= ' "' .  $new_file . '"';
 	exec($cmd);
@@ -699,7 +718,7 @@ function ime_ajax_process_image() {
 function ime_admin_menu() {
 	$ime_page = add_options_page('ImageMagick Engine', 'ImageMagick Engine', 'manage_options', 'imagemagick-engine', 'ime_option_page');
 
-	$script_pages = array($ime_page, 'media.php', 'media-new.php', 'media-upload.php');
+	$script_pages = array( $ime_page, 'media.php', 'media-new.php', 'media-upload.php', 'media-upload-popup' );
 	foreach ($script_pages as $page) {
 		add_action('admin_print_scripts-' . $page, 'ime_admin_print_scripts');
 		add_action('admin_print_styles-' . $page, 'ime_admin_print_styles');
@@ -804,7 +823,7 @@ function ime_option_display($display = true, $echo = true) {
 
 /* Plugin admin / status page */
 function ime_option_page() {
-	global $ime_available_modes;
+	global $ime_available_modes, $ime_available_quality_modes;
 
 	if (!current_user_can('manage_options'))
 		wp_die('Sorry, but you do not have permissions to change settings.');
@@ -828,18 +847,33 @@ function ime_option_page() {
 			ime_set_option('mode', $_POST['mode']);
 		if (isset($_POST['cli_path']))
 			ime_set_option('cli_path', ime_try_realpath(trim($_POST['cli_path'])));
-		if (isset($_POST['quality'])) {
-			if (is_numeric($_POST['quality']))
-				ime_set_option('quality', min(100, max(0, intval($_POST['quality']))));
-			else if (empty($_POST['quality']))
-				ime_set_option('quality', '');
+
+		$new_quality = array( 'quality' => -1, 'size' => 70 );
+		if ( isset( $_POST[ 'quality-quality' ] ) ) {
+			if ( is_numeric( $_POST[ 'quality-quality' ] ) )
+				$new_quality[ 'quality' ] = min( 100, max( 0, intval( $_POST[ 'quality-quality' ] ) ) );
+			else if ( empty( $_POST[ 'quality-quality' ] ) )
+				$new_quality[ 'quality' ] = -1;
 		}
+		if ( isset( $_POST[ 'quality-size' ] ) ) {
+			if ( is_numeric( $_POST[ 'quality-size' ] ) )
+				$new_quality[ 'quality-size' ] = min( 100, max( 0, intval( $_POST[ 'quality-size' ] ) ) );
+			else if ( empty( $_POST[ 'quality-size' ] ) )
+				$new_quality[ 'quality-size' ] = -1;
+		}
+		ime_set_option( 'quality', $new_quality );
+
 		$new_handle_sizes = array();
 		foreach ($sizes AS $s => $name) {
-			$f = 'handle-' . $s;
-			$new_handle_sizes[$s] = isset($_POST[$f]) && !! $_POST[$f];
+			$new_mode = isset( $_POST[ 'handle-mode-' . $s ] ) ? $_POST[ 'handle-mode-' . $s ] : 'skip';
+			if ( in_array( $new_mode, $ime_available_quality_modes ) )
+				$mode = $new_mode;
+			else
+				$mode = 'quality';
+
+			$new_handle_sizes[ $s ] = $mode;
 		}
-		ime_set_option('handle_sizes', $new_handle_sizes);
+		ime_set_option( 'handle_sizes', $new_handle_sizes );
 
 		ime_store_options();
 		
@@ -876,6 +910,13 @@ function ime_option_page() {
 	$cli_path_ok = ime_im_cli_check_command($cli_path);
 
 	$quality = ime_get_option('quality');
+	if ( ! is_array( $quality ) ) {
+		$n = array( 'quality' => -1, 'size' => 70 );
+		if ( is_numeric( $quality ) && $quality > 0 )
+			$n[ 'quality' ] = $quality;
+		$quality = $n;
+	}
+
 	$handle_sizes = ime_get_option('handle_sizes');
 
 	if (!$any_valid)
@@ -905,7 +946,7 @@ function ime_option_page() {
 		  <td>
 		    <?php
 		      foreach($sizes AS $s => $name) {
-			      echo '<input type="checkbox" name="regen-size-' . $s . '" value="1" ' . (isset($handle_sizes[$s]) && $handle_sizes[$s] ? ' CHECKED ' : '') . ' /> ' . $name . '<br />';
+			      echo '<input type="checkbox" name="regen-size-' . $s . '" value="1" ' . ( ( isset( $handle_sizes[ $s ] ) && $handle_sizes[ $s ] != 'skip' && $handle_sizes[ $s ] != false ) ? ' checked="checked" ' : '' ) . ' /> ' . $name . '<br />';
 		      }
 		      ?>
 		      </td>
@@ -978,17 +1019,46 @@ function ime_option_page() {
 	    <tr>
 	      <th scope="row" valign="top"><?php _e('ImageMagick quality','imagemagick-engine'); ?>:</th>
 	      <td>
-		<input id="quality" type="text" name="quality" size="3" value="<?php echo $quality; ?>" /> <?php _e('(0-100, leave empty for default value, computed dynamically)', 'imagemagick-engine'); ?>
+		<input id="quality-quality" type="text" name="quality-quality" size="3" value="<?php echo ( ( isset( $quality[ 'quality' ] ) && $quality[ 'quality' ] > 0 ) ? $quality[ 'quality' ] : '' ); ?>" /> <?php _e( 'Optimize for quality','imagemagick-engine' ); ?><br />
+		<input id="quality-size" type="text" name="quality-size" size="3" value="<?php echo ( ( isset( $quality[ 'size' ] ) && $quality[ 'size' ] > 0 ) ? $quality[ 'size' ] : '' ); ?>" /> <?php  _e( 'Optimize for size','imagemagick-engine' ); ?><br />
+		<p class="ime-description">
+		<?php _e( 'Set to 0-100. Higher value gives better image quality but larger file size. Leave empty for default value, computed dynamically.', 'imagemagick-engine' ); ?>
+		</p>
 	      </td>
 	    </tr>
 	    <tr>
-	      <th scope="row" valign="top"><?php _e('Handle sizes','imagemagick-engine'); ?>:</th>
-	      <td>
-		<?php
+	      <td colspan="2" class="ime-handle-table-wrapper">
+		<table border='0' class="ime-handle-table" id="ime-handle-table">
+		  <tr>
+		    <th scope="row" class="ime-headline" valign="top"><?php _e( 'Optimize for','imagemagick-engine' ); ?></th>
+		    <td class="ime-headline ime-fixed-width"><?php _e( 'Quality','imagemagick-engine' ); ?></td>
+		    <td class="ime-headline ime-fixed-width"><?php _e( 'Size','imagemagick-engine' ); ?></td>
+		    <td class="ime-headline"><?php _e( 'Skip (use WP instead)','imagemagick-engine' ); ?></td>
+		  </tr>
+		  <?php
 		      foreach($sizes AS $s => $name) {
-			      echo '<input type="checkbox" name="handle-' . $s . '" value="1" ' . (isset($handle_sizes[$s]) && $handle_sizes[$s] ? ' CHECKED ' : '') . ' /> ' . $name . '<br />';
+			      // fixup for old (pre 1.5.0) options
+			      if ( ! isset( $handle_sizes[ $s] ) || ! $handle_sizes[ $s ] )
+				      $handle_sizes[ $s ] = 'skip';
+			      elseif ( $handle_sizes[ $s ] === true )
+				      $handle_sizes[ $s ] = 'quality';
+			      ?>
+		  <tr>
+		    <th scope="row" valign="top"><?php echo $name; ?></th>
+		    <td class="ime-fixed-width">
+		      <input type="radio" name="handle-mode-<?php echo $s; ?>" value="quality" <?php checked( 'quality', $handle_sizes[ $s ] ); ?> />
+		    </td>
+		    <td class="ime-fixed-width">
+		      <input type="radio" name="handle-mode-<?php echo $s; ?>" value="size" <?php checked( 'size', $handle_sizes[ $s ] ); ?> />
+		    </td>
+		    <td>
+		      <input type="radio" name="handle-mode-<?php echo $s; ?>" value="skip" <?php checked( 'skip', $handle_sizes[ $s ] ); ?> />
+		    </td>
+		  </tr>
+		    <?php
 		      }
-		?>
+		  ?>
+		</table>
 	      </td>
 	    </tr>
 	    <tr>

@@ -2,7 +2,7 @@
 Contributors: orangelab
 Tags: image, images, picture, imagemagick, gd
 Requires at least: 2.9
-Tested up to: 3.3.1
+Tested up to: 3.5-beta1
 Stable tag: 1.4.0
 
 Improve the quality of re-sized images by replacing standard GD library with ImageMagick.
@@ -73,6 +73,14 @@ You'll probably have problems with various other plugins too unless you fix this
 2. Administration interface
 
 == Changelog ==
+
+= 1.5.0 =
+* Tested with WP 3.5-beta1
+* Allow choosing between optimize for quality & size for each image size
+* Fix resize UI bug in media pop-up
+* Add "ime_after_resize" action after resize
+* Catch Imagick exceptions
+* Modified code now uses more of WP standard coding style
 
 = 1.4.0 =
 * Tested with WP 3.3.1
