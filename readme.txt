@@ -3,7 +3,7 @@ Contributors: orangelab
 Tags: image, images, picture, imagemagick, gd
 Requires at least: 2.9
 Tested up to: 3.5-beta2
-Stable tag: 1.4.0
+Stable tag: 1.5.0
 
 Improve the quality of re-sized images by replacing standard GD library with ImageMagick.
 
@@ -16,7 +16,8 @@ Features
 * Preserve embedded color profile in re-sized image
 * Automatically recognize custom image sizes
 * Allow regeneration of existing images (optionally for selected image sizes only)
-* Configure image quality or use dynamically computed default value.
+* Configure image quality or use dynamically computed default value
+* Optimize different image sizes for either quality or size
 
 Translations: French, German, Swedish
 
