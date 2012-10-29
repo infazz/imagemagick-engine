@@ -177,7 +177,7 @@ msgid "Size"
 msgstr ""
 
 #: imagemagick-engine.php:1036
-msgid "Skip (use WP instead)"
+msgid "None (use WP instead)"
 msgstr ""
 
 #: imagemagick-engine.php:1066

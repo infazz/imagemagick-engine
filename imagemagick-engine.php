@@ -718,7 +718,7 @@ function ime_ajax_process_image() {
 function ime_admin_menu() {
 	$ime_page = add_options_page('ImageMagick Engine', 'ImageMagick Engine', 'manage_options', 'imagemagick-engine', 'ime_option_page');
 
-	$script_pages = array( $ime_page, 'media.php', 'media-new.php', 'media-upload.php', 'media-upload-popup' );
+	$script_pages = array( $ime_page, 'media.php', 'media-new.php', 'media-upload.php', 'media-upload-popup', 'post.php' );
 	foreach ($script_pages as $page) {
 		add_action('admin_print_scripts-' . $page, 'ime_admin_print_scripts');
 		add_action('admin_print_styles-' . $page, 'ime_admin_print_styles');
@@ -1033,7 +1033,7 @@ function ime_option_page() {
 		    <th scope="row" class="ime-headline" valign="top"><?php _e( 'Optimize for','imagemagick-engine' ); ?></th>
 		    <td class="ime-headline ime-fixed-width"><?php _e( 'Quality','imagemagick-engine' ); ?></td>
 		    <td class="ime-headline ime-fixed-width"><?php _e( 'Size','imagemagick-engine' ); ?></td>
-		    <td class="ime-headline"><?php _e( 'Skip (use WP instead)','imagemagick-engine' ); ?></td>
+		    <td class="ime-headline"><?php _e( 'None (use WP instead)','imagemagick-engine' ); ?></td>
 		  </tr>
 		  <?php
 		      foreach($sizes AS $s => $name) {
