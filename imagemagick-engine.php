@@ -5,10 +5,10 @@
   Description: Improve the quality of re-sized images by replacing standard GD library with ImageMagick
   Author: Orangelab
   Author URI: http://www.orangelab.se
-  Version: 1.5.0
+  Version: 1.5.1
   Text Domain: imagemagick-engine
 
-  Copyright 2010, 2011, 2012 Orangelab
+  Copyright 2010, 2011, 2012, 2013 Orangelab
 
   Licenced under the GNU GPL:
 

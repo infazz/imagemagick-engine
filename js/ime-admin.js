@@ -56,7 +56,7 @@ function imeStartResize() {
     rt_count = 1;
     jQuery("#regenbar").progressbar();
     jQuery("#regenbar-percent").html( rt_percent.toFixed(rt_precision) + " %" );
-    jQuery('#regeneration').dialog('open');
+    jQuery('#regeneration').dialog( { 'dialogClass': 'ime-dialog' } ).dialog( 'open' );
 
     imeRegenImages( rt_images.shift() );
 }
