@@ -2,8 +2,8 @@
 Contributors: orangelab
 Tags: image, images, picture, imagemagick, gd
 Requires at least: 2.9
-Tested up to: 3.1.2
-Stable tag: 1.2.3
+Tested up to: 3.6
+Stable tag: 1.5.1
 
 Improve the quality of re-sized images by replacing standard GD library with ImageMagick.
 
@@ -16,9 +16,10 @@ Features
 * Preserve embedded color profile in re-sized image
 * Automatically recognize custom image sizes
 * Allow regeneration of existing images (optionally for selected image sizes only)
-* Configure image quality or use dynamically computed default value.
+* Configure image quality or use dynamically computed default value
+* Optimize different image sizes for either quality or size
 
-Translations: German, Swedish
+Translations: French, German, Swedish
 
 Requires either ImageMagick binary or Imagick PHP module.
 
@@ -73,6 +74,45 @@ You'll probably have problems with various other plugins too unless you fix this
 2. Administration interface
 
 == Changelog ==
+
+= 1.5.1 =
+* Tested with WP 3.6
+* Fix CSS problems with other users of jQuery dialogs
+
+= 1.5.0 =
+* Tested with WP 3.5-beta2
+* Allow choosing between optimize for quality & size for each image size
+* Fix resize UI bug in media pop-up and new attachment editor (post.php)
+* Add "ime_after_resize" action after resize
+* Catch Imagick exceptions
+* Modified code now uses more of WP standard coding style
+* Updated French translation, thanks to Damien Fabreguettes
+* Updated Swedish translation for new strings
+
+= 1.4.0 =
+* Tested with WP 3.3.1
+* Resize / Force resize button in media library
+* Add more precision to resize % when large nr of images
+* More sanity tests in ajax resize code
+* Use WordPress version of jQuery UI progressbar if available
+* Split plugin init into early and late part
+* Fix PHP notice (in initial plugin configuration)
+* Updated swedish translation for new strings
+* French translation thanks to Damien Fabreguettes
+
+= 1.3.1 =
+* Tested with WP 3.2.1
+* Bugfix: escape '^' character on Windows (thanks to alx359)
+* clean up IM command line argument handling a bit
+
+= 1.3.0 =
+* Tested agains WP 3.2
+* Fix JS to be compatible with jQuery 1.6
+* Remove some PHP notices
+* Change command line limit values to specifik byte amounts (instead of "mb") for compatability with really old IM versions
+* Handle open_basename restrictions better
+* Handle older versions (pre 6.3.1) of PHP Imagick class
+* IM and WordPress compute aspect ratio slightly differently, force the WP values
 
 = 1.2.3 =
 * Fix bug in resize all images handling, also remove some PHP notices. Thanks to Andreas Kleinschmidt for the report
